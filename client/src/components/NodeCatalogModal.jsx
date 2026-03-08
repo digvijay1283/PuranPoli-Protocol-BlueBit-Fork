@@ -13,6 +13,7 @@ function NodeCatalogModal({ nodeType, position, workspaceId, onSelect, onClose }
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(null);
+  const [source, setSource] = useState("catalog");
 
   const meta = NODE_META[nodeType] || { title: nodeType, icon: "hub", iconClass: "bg-slate-200 text-slate-700" };
 
@@ -23,6 +24,7 @@ function NodeCatalogModal({ nodeType, position, workspaceId, onSelect, onClose }
         const res = await graphApi.getNodeCatalog(nodeType);
         if (!cancelled) {
           setCatalog(res.catalog?.[nodeType] || []);
+          setSource(res.source || "catalog");
         }
       } catch (err) {
         console.error("Failed to load catalog", err);
@@ -81,7 +83,10 @@ function NodeCatalogModal({ nodeType, position, workspaceId, onSelect, onClose }
           </div>
           <div className="flex-1">
             <h2 className="text-base font-bold text-slate-900">Select {meta.title}</h2>
-            <p className="text-xs text-slate-400">Choose a pre-built entity or create a blank node</p>
+            <p className="text-xs text-slate-400">
+              Choose a pre-built entity or create a blank node
+              {source === "pharma_csv" ? " • source: pharma_supply_chain_risk.csv" : ""}
+            </p>
           </div>
           <button type="button" className="material-symbols-outlined text-slate-400 hover:text-slate-600" onClick={onClose}>close</button>
         </div>

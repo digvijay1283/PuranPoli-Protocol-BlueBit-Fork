@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { analyticsApi, graphApi } from "../services/api";
 import { NODE_META } from "../constants/nodeMeta";
+import { workspaceApi } from "../services/api";
 
 function RiskBadge({ score }) {
   if (score <= 30) return <span className="rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-bold text-green-700">Low</span>;
@@ -37,9 +38,11 @@ function RiskGauge({ value, size = 120 }) {
   );
 }
 
-function RiskAnalysisPage() {
+export default function RiskAnalysisPage() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
+  const [workspaces, setWorkspaces] = useState([]);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState(null);
   const [analyticsError, setAnalyticsError] = useState("");
@@ -48,26 +51,53 @@ function RiskAnalysisPage() {
   const [filterType, setFilterType] = useState("all");
 
   useEffect(() => {
-    async function load() {
+    async function initWorkspaces() {
       try {
-        const [graphData, analyticsData] = await Promise.all([
-          graphApi.getGraph(),
-          analyticsApi.getOverview(),
-        ]);
-        setNodes(graphData.nodes || []);
-        setEdges(graphData.edges || []);
-        setAnalytics(analyticsData);
+        const res = await workspaceApi.list();
+        const list = res.workspaces || [];
+        setWorkspaces(list);
+        if (list.length === 0) {
+          setLoading(false);
+          return;
+        }
+        const saved = localStorage.getItem("activeWorkspaceId");
+        const chosen = list.find((w) => w._id === saved)?._id || list[0]._id;
+        setActiveWorkspaceId(chosen);
+        localStorage.setItem("activeWorkspaceId", chosen);
+      } catch (err) {
+        console.error("Failed to load workspaces", err);
+        setLoading(false);
+      }
+    }
+    initWorkspaces();
+  }, []);
+
+  useEffect(() => {
+    if (!activeWorkspaceId) return;
+
+    async function loadWorkspaceRisk() {
+      setLoading(true);
+      setAnalyticsError("");
+      try {
+        const graphData = await graphApi.getGraph(activeWorkspaceId);
+        const scopedNodes = graphData.nodes || [];
+        const scopedEdges = graphData.edges || [];
+
+        setNodes(scopedNodes);
+        setEdges(scopedEdges);
+
+        const pred = await analyticsApi.predictGraph({ nodes: scopedNodes, edges: scopedEdges });
+        setAnalytics(pred?.predictions || null);
       } catch (error) {
         console.error("Failed to load risk analysis data", error);
-        setAnalyticsError(
-          "Analytics service is unreachable. Start FastAPI service on port 8001."
-        );
+        setAnalyticsError("Failed to analyze selected workspace. Make sure the analytics service is running on port 8001.");
       } finally {
         setLoading(false);
       }
     }
-    load();
-  }, []);
+
+    loadWorkspaceRisk();
+  }, [activeWorkspaceId]);
 
   if (loading) {
     return (
@@ -122,9 +152,17 @@ function RiskAnalysisPage() {
   };
 
   const spof = analytics?.single_point_of_failure;
-  const geo = analytics?.geographic_concentration;
-  const reliability = analytics?.supplier_reliability;
-  const mismatch = analytics?.demand_supply_mismatch;
+  const liveSummary = analytics?.summary;
+  const vulnerabilities = analytics?.vulnerabilities || [];
+  const bottlenecks = analytics?.bottlenecks || [];
+  const geoLive = analytics?.geographic_risk;
+  // Lowest-reliability nodes from graph (for Supplier Reliability panel)
+  const reliabilityRanking = analytics?.reliability_ranking || [];
+  // Highest-mismatch nodes from graph (for Demand-Supply Mismatch panel)
+  const mismatchRanking = analytics?.mismatch_ranking || [];
+  // All node predictions (for enriched SPOF reasons)
+  const nodePredsMap = {};
+  (analytics?.node_predictions || []).forEach((p) => { nodePredsMap[p.node_id] = p; });
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -132,6 +170,21 @@ function RiskAnalysisPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Risk Analysis</h1>
         <p className="text-sm text-slate-500">Identify vulnerabilities across your supply chain</p>
+        <div className="mt-3 w-72">
+          <select
+            value={activeWorkspaceId || ""}
+            onChange={(e) => {
+              const id = e.target.value;
+              setActiveWorkspaceId(id);
+              localStorage.setItem("activeWorkspaceId", id);
+            }}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700"
+          >
+            {workspaces.map((w) => (
+              <option key={w._id} value={w._id}>{w.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -177,135 +230,165 @@ function RiskAnalysisPage() {
 
       {analytics && (
         <>
+          {/* KPI summary row */}
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
             <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
               <p className="text-xs text-slate-500">Single Point Failures</p>
               <p className="text-2xl font-black text-slate-900">
-                {spof?.single_point_failures ?? 0}
+                {liveSummary?.single_point_failures ?? 0}
               </p>
               <p className="text-[11px] text-slate-400">
-                {spof?.spof_rate_pct ?? 0}% of suppliers
+                articulation points in this chain
               </p>
             </div>
 
             <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
               <p className="text-xs text-slate-500">Geographic Concentration (HHI)</p>
               <p className="text-2xl font-black text-slate-900">
-                {geo?.hhi_country ?? 0}
+                {geoLive?.hhi_country ?? 0}
               </p>
               <p className="text-[11px] uppercase tracking-wide text-slate-400">
-                {geo?.concentration_level ?? "unknown"}
+                {geoLive?.concentration_level ?? "unknown"}
               </p>
             </div>
 
             <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
-              <p className="text-xs text-slate-500">Avg Supplier Reliability</p>
+              <p className="text-xs text-slate-500">Avg Chain Reliability</p>
               <p className="text-2xl font-black text-slate-900">
-                {reliability?.average_reliability ?? 0}
+                {Math.round(100 - (liveSummary?.avg_predicted_risk || 0))}
               </p>
               <p className="text-[11px] text-slate-400">out of 100</p>
             </div>
 
             <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
-              <p className="text-xs text-slate-500">Critical Demand-Supply Mismatch</p>
+              <p className="text-xs text-slate-500">High Mismatch Nodes</p>
               <p className="text-2xl font-black text-slate-900">
-                {mismatch?.critical_mismatch_suppliers ?? 0}
+                {mismatchRanking.filter((n) => n.mismatch_index > 50).length}
               </p>
               <p className="text-[11px] text-slate-400">
-                Avg index: {mismatch?.avg_mismatch_index ?? 0}
+                avg index: {mismatchRanking.length ? Math.round(mismatchRanking.reduce((a, b) => a + b.mismatch_index, 0) / mismatchRanking.length) : 0}
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+            {/* ── SPOF Panel ─────────────────────────────────────────── */}
             <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
               <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                 Single Point Of Failure Identification
               </h3>
-              <div className="space-y-2">
-                {(spof?.top_exposed_suppliers || []).slice(0, 5).map((item) => (
-                  <div
-                    key={item.supplier_id}
-                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700">{item.supplier_id}</p>
-                      <p className="text-[11px] text-slate-400">
-                        {item.country} • dep {Math.round((item.dependency_pct || 0) * 100)}%
-                      </p>
+              {vulnerabilities.length === 0 ? (
+                <p className="text-sm text-slate-400">No SPOFs detected in this chain.</p>
+              ) : (
+                <div className="space-y-2">
+                  {vulnerabilities.slice(0, 5).map((item, idx) => (
+                    <div
+                      key={item.node_id || idx}
+                      className="rounded-lg border border-red-100 bg-red-50/40 px-3 py-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-slate-700">{item.name}</p>
+                        <span className="text-xs font-bold text-red-600">{item.predicted_risk}</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <p className="text-[11px] text-slate-400">{item.country} • {item.type}</p>
+                        {item.is_articulation_point && (
+                          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">structural SPOF</span>
+                        )}
+                        {item.is_bottleneck && (
+                          <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">bottleneck ×{item.in_degree}</span>
+                        )}
+                      </div>
+                      {item.spof_reasons && item.spof_reasons.length > 0 && (
+                        <p className="mt-1 text-[10px] text-slate-400 italic">{item.spof_reasons.join(" · ")}</p>
+                      )}
                     </div>
-                    <span className="text-xs font-bold text-red-600">
-                      {item.spof_risk_index}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
+            {/* ── Geographic Concentration Panel ─────────────────────── */}
             <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
               <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                 Geographic Concentration Risk
               </h3>
-              <div className="space-y-2">
-                {(geo?.top_countries || []).slice(0, 5).map((item) => (
-                  <div
-                    key={item.country}
-                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700">{item.country}</p>
-                      <p className="text-[11px] text-slate-400">{item.suppliers} suppliers</p>
+              {(geoLive?.countries || []).length === 0 ? (
+                <p className="text-sm text-slate-400">No country data on nodes in this chain.</p>
+              ) : (
+                <div className="space-y-2">
+                  {(geoLive.countries || []).slice(0, 5).map((item, idx) => (
+                    <div
+                      key={`${item.country}-${idx}`}
+                      className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-slate-700">{item.country}</p>
+                        <p className="text-[11px] text-slate-400">{item.count} node{item.count !== 1 ? "s" : ""} in chain</p>
+                      </div>
+                      <span className="text-xs font-bold text-slate-600">{item.share_pct}%</span>
                     </div>
-                    <span className="text-xs font-bold text-slate-600">{item.share_pct}%</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
+            {/* ── Supplier Reliability Panel ──────────────────────────── */}
             <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
               <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                 Supplier Reliability Scoring
               </h3>
-              <div className="space-y-2">
-                {(reliability?.lowest_reliability_suppliers || []).slice(0, 5).map((item) => (
-                  <div
-                    key={item.supplier_id}
-                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700">{item.supplier_id}</p>
-                      <p className="text-[11px] text-slate-400">{item.country} • tier {item.tier}</p>
+              {reliabilityRanking.length === 0 ? (
+                <p className="text-sm text-slate-400">No nodes in this chain.</p>
+              ) : (
+                <div className="space-y-2">
+                  {reliabilityRanking.slice(0, 5).map((item, idx) => (
+                    <div
+                      key={item.node_id || idx}
+                      className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-slate-700">{item.name}</p>
+                        <p className="text-[11px] text-slate-400">{item.country} • {item.type}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="block text-xs font-bold text-orange-600">{item.reliability}</span>
+                        <span className="text-[10px] text-slate-400">reliability</span>
+                      </div>
                     </div>
-                    <span className="text-xs font-bold text-orange-600">
-                      {item.reliability_score}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
+            {/* ── Demand-Supply Mismatch Panel ────────────────────────── */}
             <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
               <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                 Demand-Supply Mismatch Detection
               </h3>
-              <div className="space-y-2">
-                {(mismatch?.top_mismatches || []).slice(0, 5).map((item) => (
-                  <div
-                    key={item.supplier_id}
-                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700">{item.supplier_id}</p>
-                      <p className="text-[11px] text-slate-400">
-                        util {Math.round((item.capacity_utilization_pct || 0) * 100)}%
-                      </p>
+              {mismatchRanking.length === 0 ? (
+                <p className="text-sm text-slate-400">No nodes in this chain.</p>
+              ) : (
+                <div className="space-y-2">
+                  {mismatchRanking.slice(0, 5).map((item, idx) => (
+                    <div
+                      key={item.node_id || idx}
+                      className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-slate-700">{item.name}</p>
+                        <p className="text-[11px] text-slate-400">
+                          {item.type} • in-deg {item.in_degree}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="block text-xs font-bold text-red-600">{item.mismatch_index}</span>
+                        <span className="text-[10px] text-slate-400">mismatch</span>
+                      </div>
                     </div>
-                    <span className="text-xs font-bold text-red-600">
-                      {item.mismatch_index}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </>
@@ -416,5 +499,3 @@ function RiskAnalysisPage() {
     </div>
   );
 }
-
-export default RiskAnalysisPage;

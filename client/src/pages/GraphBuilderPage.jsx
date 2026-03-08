@@ -31,7 +31,10 @@ function GraphBuilderPage() {
 
         setWorkspaces(list);
         if (list.length > 0 && !activeWorkspaceId) {
-          setActiveWorkspaceId(list[0]._id);
+          const saved = localStorage.getItem("activeWorkspaceId");
+          const chosen = list.find((w) => w._id === saved)?._id || list[0]._id;
+          setActiveWorkspaceId(chosen);
+          localStorage.setItem("activeWorkspaceId", chosen);
         }
       } catch (err) {
         console.error("Failed to load workspaces", err);
@@ -44,6 +47,7 @@ function GraphBuilderPage() {
 
   const switchWorkspace = (id) => {
     setActiveWorkspaceId(id);
+    localStorage.setItem("activeWorkspaceId", id);
     setSelectedNode(null);
     setRefreshToken((prev) => prev + 1);
     setShowWsDropdown(false);
@@ -105,6 +109,7 @@ function GraphBuilderPage() {
       const newWs = res.workspace;
       setWorkspaces((prev) => [...prev, newWs]);
       setActiveWorkspaceId(newWs._id);
+      localStorage.setItem("activeWorkspaceId", newWs._id);
       setSelectedNode(null);
       setRefreshToken((prev) => prev + 1);
     } catch (error) {

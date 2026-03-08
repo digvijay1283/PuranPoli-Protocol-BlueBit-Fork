@@ -6,6 +6,7 @@ const Edge = require("../models/Edge");
 const Workspace = require("../models/Workspace");
 const { demoNodes, demoEdges } = require("../data/demoGraph");
 const { nodeCatalog } = require("../data/nodeCatalog");
+const { getPharmaCatalogAndSchema } = require("../data/pharmaCatalog");
 const { CatalogItem } = require("../models/CatalogItem");
 
 const toReactFlowNode = (nodeDoc) => ({
@@ -359,10 +360,31 @@ const resetGraph = async (req, res) => {
 
 const getNodeCatalog = async (req, res) => {
   const { type } = req.query;
+  // Priority 1: derive catalog from pharma CSV schema/data.
+  const pharmaData = getPharmaCatalogAndSchema();
+  const pharmaCatalog = pharmaData.catalog || {};
+
+  if (type && pharmaCatalog[type] && pharmaCatalog[type].length > 0) {
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      source: "pharma_csv",
+      catalog: { [type]: pharmaCatalog[type] },
+      schema: pharmaData.schemaAnalysis,
+    });
+  }
+
+  if (!type && Object.keys(pharmaCatalog).length > 0) {
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      source: "pharma_csv",
+      catalog: { ...nodeCatalog, ...pharmaCatalog },
+      schema: pharmaData.schemaAnalysis,
+    });
+  }
+
+  // Priority 2: DB catalog (if CSV didn't provide data for requested type)
   const filter = {};
   if (type) filter.type = type;
-
-  // Try DB first
   const dbItems = await CatalogItem.find(filter).sort({ type: 1, name: 1 }).lean();
 
   if (dbItems.length > 0) {
@@ -371,14 +393,23 @@ const getNodeCatalog = async (req, res) => {
       if (!catalog[item.type]) catalog[item.type] = [];
       catalog[item.type].push(item);
     }
-    return res.status(StatusCodes.OK).json({ success: true, catalog });
+    return res.status(StatusCodes.OK).json({ success: true, source: "catalog_db", catalog });
   }
 
-  // Fall back to static data
+  // Priority 3: static fallback
   if (type && nodeCatalog[type]) {
-    return res.status(StatusCodes.OK).json({ success: true, catalog: { [type]: nodeCatalog[type] } });
+    return res.status(StatusCodes.OK).json({ success: true, source: "static_fallback", catalog: { [type]: nodeCatalog[type] } });
   }
-  res.status(StatusCodes.OK).json({ success: true, catalog: nodeCatalog });
+  res.status(StatusCodes.OK).json({ success: true, source: "static_fallback", catalog: nodeCatalog });
+};
+
+const getPharmaSchemaAnalysis = async (_req, res) => {
+  const pharmaData = getPharmaCatalogAndSchema();
+  res.status(StatusCodes.OK).json({
+    success: true,
+    csvPath: pharmaData.csvPath,
+    schema: pharmaData.schemaAnalysis,
+  });
 };
 
 module.exports = {
@@ -391,4 +422,5 @@ module.exports = {
   loadDemo,
   resetGraph,
   getNodeCatalog,
+  getPharmaSchemaAnalysis,
 };

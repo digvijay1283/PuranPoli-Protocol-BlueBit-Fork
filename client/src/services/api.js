@@ -48,6 +48,10 @@ export const graphApi = {
     const { data } = await api.get("/nodes/catalog", { params });
     return data;
   },
+  getNodeCatalogSchema: async () => {
+    const { data } = await api.get("/nodes/catalog/schema");
+    return data;
+  },
   createNode: async (payload) => {
     const { data } = await api.post("/nodes", payload);
     return data;
@@ -112,6 +116,10 @@ export const catalogApi = {
 };
 
 export const analyticsApi = {
+  predictGraph: async (payload) => {
+    const { data } = await analyticsApiClient.post("/analytics/predict-graph", payload);
+    return data;
+  },
   getOverview: async () => {
     const { data } = await analyticsApiClient.get("/analytics/overview");
     return data;

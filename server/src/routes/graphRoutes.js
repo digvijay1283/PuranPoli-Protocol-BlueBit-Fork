@@ -10,12 +10,14 @@ const {
   loadDemo,
   resetGraph,
   getNodeCatalog,
+  getPharmaSchemaAnalysis,
 } = require("../controllers/graphController");
 
 const router = express.Router();
 
 router.get("/graph", getGraph);
 router.get("/nodes/catalog", getNodeCatalog);
+router.get("/nodes/catalog/schema", getPharmaSchemaAnalysis);
 router.post("/graph/demo", loadDemo);
 router.post("/graph/reset", resetGraph);
 
