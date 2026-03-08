@@ -93,7 +93,7 @@ function SimulationPage() {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <span className="material-symbols-outlined animate-spin text-4xl text-[#a390f9]">progress_activity</span>
+        <span className="material-symbols-outlined animate-spin text-4xl text-[#b1b2ff]">progress_activity</span>
       </div>
     );
   }
@@ -109,7 +109,7 @@ function SimulationPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Scenario builder */}
         <div className="lg:col-span-1">
-          <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
             <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Build Scenario</h3>
 
             {/* Disruption type */}
@@ -121,8 +121,8 @@ function SimulationPage() {
                   type="button"
                   className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-center transition-all ${
                     selectedDisruption === d.id
-                      ? "border-[#a390f9] bg-[#a390f9]/10 text-[#a390f9]"
-                      : "border-slate-100 text-slate-500 hover:border-[#a390f9]/30"
+                      ? "border-[#b1b2ff] bg-[#b1b2ff]/10 text-[#b1b2ff]"
+                      : "border-slate-100 text-slate-500 hover:border-[#b1b2ff]/30"
                   }`}
                   onClick={() => setSelectedDisruption(d.id)}
                 >
@@ -136,7 +136,7 @@ function SimulationPage() {
             <label className="mb-5 block">
               <span className="text-[10px] font-bold uppercase text-slate-400">Target Node</span>
               <select
-                className="mt-1 w-full rounded-xl border border-[#a390f9]/10 bg-[#a390f9]/5 px-4 py-3 text-sm font-medium"
+                className="mt-1 w-full rounded-xl border border-[#b1b2ff]/10 bg-[#b1b2ff]/5 px-4 py-3 text-sm font-medium"
                 value={targetNodeId}
                 onChange={(e) => setTargetNodeId(e.target.value)}
               >
@@ -151,7 +151,7 @@ function SimulationPage() {
             <label className="mb-5 block">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase text-slate-400">Severity</span>
-                <span className="text-xs font-bold text-[#a390f9]">{severity}%</span>
+                <span className="text-xs font-bold text-[#b1b2ff]">{severity}%</span>
               </div>
               <input
                 type="range"
@@ -159,7 +159,7 @@ function SimulationPage() {
                 max="100"
                 value={severity}
                 onChange={(e) => setSeverity(Number(e.target.value))}
-                className="mt-2 w-full accent-[#a390f9]"
+                className="mt-2 w-full accent-[#b1b2ff]"
               />
               <div className="flex justify-between text-[10px] text-slate-400">
                 <span>Minor</span>
@@ -176,14 +176,14 @@ function SimulationPage() {
                 max="365"
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-[#a390f9]/10 bg-[#a390f9]/5 px-4 py-3 text-sm font-medium"
+                className="mt-1 w-full rounded-xl border border-[#b1b2ff]/10 bg-[#b1b2ff]/5 px-4 py-3 text-sm font-medium"
               />
             </label>
 
             <button
               type="button"
               disabled={!selectedDisruption || !targetNodeId || simRunning}
-              className="w-full rounded-xl bg-[#a390f9] py-3 text-sm font-bold text-white shadow-lg shadow-[#a390f9]/20 transition-colors hover:bg-[#8f79f7] disabled:opacity-50"
+              className="w-full rounded-xl bg-[#b1b2ff] py-3 text-sm font-bold text-white shadow-lg shadow-[#b1b2ff]/20 transition-colors hover:bg-[#9798f0] disabled:opacity-50"
               onClick={runSimulation}
             >
               {simRunning ? (
@@ -201,8 +201,8 @@ function SimulationPage() {
         {/* Results */}
         <div className="lg:col-span-2">
           {!simResult && !simRunning && (
-            <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#a390f9]/20 bg-white/50 p-12">
-              <span className="material-symbols-outlined mb-4 text-5xl text-[#a390f9]/30">science</span>
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#b1b2ff]/20 bg-white/50 p-12">
+              <span className="material-symbols-outlined mb-4 text-5xl text-[#b1b2ff]/30">science</span>
               <h3 className="text-lg font-bold text-slate-700">Configure & Run</h3>
               <p className="mt-1 max-w-sm text-center text-sm text-slate-400">
                 Select a disruption type, target node, and severity, then run the simulation to see projected impacts.
@@ -211,8 +211,8 @@ function SimulationPage() {
           )}
 
           {simRunning && (
-            <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-[#a390f9]/10 bg-white p-12">
-              <span className="material-symbols-outlined animate-spin text-5xl text-[#a390f9]">progress_activity</span>
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-[#b1b2ff]/10 bg-white p-12">
+              <span className="material-symbols-outlined animate-spin text-5xl text-[#b1b2ff]">progress_activity</span>
               <p className="mt-4 text-sm font-semibold text-slate-600">Running simulation model...</p>
             </div>
           )}
@@ -221,12 +221,12 @@ function SimulationPage() {
             <div className="flex flex-col gap-6">
               {/* Impact summary */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+                <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
                   <p className="text-[10px] font-bold uppercase text-slate-400">Nodes Impacted</p>
                   <p className="text-3xl font-black text-slate-900">{simResult.impactedNodeCount}</p>
                   <p className="text-[10px] text-slate-400">of {nodes.length} total</p>
                 </div>
-                <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+                <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
                   <p className="text-[10px] font-bold uppercase text-slate-400">Risk Shift</p>
                   <p className="text-3xl font-black text-red-600">
                     {simResult.avgOriginal}% → {simResult.avgSimulated}%
@@ -235,7 +235,7 @@ function SimulationPage() {
                     +{simResult.avgSimulated - simResult.avgOriginal}% average increase
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+                <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
                   <p className="text-[10px] font-bold uppercase text-slate-400">Est. Recovery</p>
                   <p className="text-3xl font-black text-slate-900">{simResult.recoveryEstimate}d</p>
                   <p className="text-[10px] text-slate-400">to return to baseline</p>
@@ -243,7 +243,7 @@ function SimulationPage() {
               </div>
 
               {/* Scenario detail */}
-              <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+              <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
                 <div className="mb-4 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
                     <span className="material-symbols-outlined">{simResult.disruption.icon}</span>
@@ -258,7 +258,7 @@ function SimulationPage() {
               </div>
 
               {/* Cascading impact table */}
-              <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+              <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
                 <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                   Cascading Impact ({simResult.affectedNodes.length} most affected)
                 </h3>
@@ -278,7 +278,7 @@ function SimulationPage() {
                         <tr key={n.id} className="text-slate-700">
                           <td className="py-3 pr-4 font-medium">{n.name}</td>
                           <td className="py-3 pr-4">
-                            <span className="rounded bg-[#a390f9]/10 px-2 py-0.5 text-[10px] font-medium text-[#6f59d9]">{n.type}</span>
+                            <span className="rounded bg-[#b1b2ff]/10 px-2 py-0.5 text-[10px] font-medium text-[#6d6fd8]">{n.type}</span>
                           </td>
                           <td className="py-3 pr-4 text-xs">{n.originalRisk}%</td>
                           <td className="py-3 pr-4 text-xs font-bold text-red-600">{n.simulatedRisk}%</td>

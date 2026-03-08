@@ -7,7 +7,7 @@ const defaultSettings = {
   autoSave: true,
   riskThreshold: 60,
   defaultZoom: 1,
-  primaryColor: "#a390f9",
+  primaryColor: "#b1b2ff",
   gridSize: 40,
 };
 
@@ -57,7 +57,7 @@ function SettingsPage() {
           </button>
           <button
             type="button"
-            className="rounded-xl bg-[#a390f9] px-6 py-2 text-xs font-bold text-white shadow-lg shadow-[#a390f9]/20 hover:bg-[#8f79f7]"
+            className="rounded-xl bg-[#b1b2ff] px-6 py-2 text-xs font-bold text-white shadow-lg shadow-[#b1b2ff]/20 hover:bg-[#9798f0]"
             onClick={handleSave}
           >
             {saved ? "Saved!" : "Save Settings"}
@@ -73,7 +73,7 @@ function SettingsPage() {
       )}
 
       {/* Graph settings */}
-      <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
         <h3 className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
           <span className="material-symbols-outlined text-[18px]">hub</span>
           Graph Visualization
@@ -93,7 +93,7 @@ function SettingsPage() {
                 checked={settings.graphAnimated}
                 onChange={(e) => update("graphAnimated", e.target.checked)}
               />
-              <div className="h-6 w-11 rounded-full bg-slate-200 transition-colors peer-checked:bg-[#a390f9]" />
+              <div className="h-6 w-11 rounded-full bg-slate-200 transition-colors peer-checked:bg-[#b1b2ff]" />
               <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5" />
             </div>
           </label>
@@ -111,7 +111,7 @@ function SettingsPage() {
                 checked={settings.minimap}
                 onChange={(e) => update("minimap", e.target.checked)}
               />
-              <div className="h-6 w-11 rounded-full bg-slate-200 transition-colors peer-checked:bg-[#a390f9]" />
+              <div className="h-6 w-11 rounded-full bg-slate-200 transition-colors peer-checked:bg-[#b1b2ff]" />
               <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5" />
             </div>
           </label>
@@ -127,7 +127,7 @@ function SettingsPage() {
                   type="button"
                   className={`rounded-lg px-3 py-1.5 text-xs font-bold capitalize transition-all ${
                     settings.edgeStyle === style
-                      ? "bg-[#a390f9] text-white"
+                      ? "bg-[#b1b2ff] text-white"
                       : "border border-slate-200 text-slate-500 hover:text-slate-700"
                   }`}
                   onClick={() => update("edgeStyle", style)}
@@ -145,7 +145,7 @@ function SettingsPage() {
                 <p className="text-sm font-semibold text-slate-700">Grid Size</p>
                 <p className="text-xs text-slate-400">Background grid spacing</p>
               </div>
-              <span className="text-xs font-bold text-[#a390f9]">{settings.gridSize}px</span>
+              <span className="text-xs font-bold text-[#b1b2ff]">{settings.gridSize}px</span>
             </div>
             <input
               type="range"
@@ -153,7 +153,7 @@ function SettingsPage() {
               max="80"
               value={settings.gridSize}
               onChange={(e) => update("gridSize", Number(e.target.value))}
-              className="mt-2 w-full accent-[#a390f9]"
+              className="mt-2 w-full accent-[#b1b2ff]"
             />
           </div>
 
@@ -164,7 +164,7 @@ function SettingsPage() {
                 <p className="text-sm font-semibold text-slate-700">Default Zoom</p>
                 <p className="text-xs text-slate-400">Initial zoom level</p>
               </div>
-              <span className="text-xs font-bold text-[#a390f9]">{settings.defaultZoom}x</span>
+              <span className="text-xs font-bold text-[#b1b2ff]">{settings.defaultZoom}x</span>
             </div>
             <input
               type="range"
@@ -173,14 +173,14 @@ function SettingsPage() {
               step="0.1"
               value={settings.defaultZoom}
               onChange={(e) => update("defaultZoom", Number(e.target.value))}
-              className="mt-2 w-full accent-[#a390f9]"
+              className="mt-2 w-full accent-[#b1b2ff]"
             />
           </div>
         </div>
       </div>
 
       {/* Risk settings */}
-      <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
         <h3 className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
           <span className="material-symbols-outlined text-[18px]">warning</span>
           Risk & Alerts
@@ -194,7 +194,7 @@ function SettingsPage() {
                 <p className="text-sm font-semibold text-slate-700">Risk Threshold</p>
                 <p className="text-xs text-slate-400">Nodes above this are flagged as high-risk</p>
               </div>
-              <span className="text-xs font-bold text-[#a390f9]">{settings.riskThreshold}%</span>
+              <span className="text-xs font-bold text-[#b1b2ff]">{settings.riskThreshold}%</span>
             </div>
             <input
               type="range"
@@ -202,7 +202,7 @@ function SettingsPage() {
               max="90"
               value={settings.riskThreshold}
               onChange={(e) => update("riskThreshold", Number(e.target.value))}
-              className="mt-2 w-full accent-[#a390f9]"
+              className="mt-2 w-full accent-[#b1b2ff]"
             />
           </div>
 
@@ -219,7 +219,7 @@ function SettingsPage() {
                 checked={settings.autoSave}
                 onChange={(e) => update("autoSave", e.target.checked)}
               />
-              <div className="h-6 w-11 rounded-full bg-slate-200 transition-colors peer-checked:bg-[#a390f9]" />
+              <div className="h-6 w-11 rounded-full bg-slate-200 transition-colors peer-checked:bg-[#b1b2ff]" />
               <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5" />
             </div>
           </label>
@@ -227,7 +227,7 @@ function SettingsPage() {
       </div>
 
       {/* Theme */}
-      <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
         <h3 className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
           <span className="material-symbols-outlined text-[18px]">palette</span>
           Appearance
@@ -251,7 +251,7 @@ function SettingsPage() {
       </div>
 
       {/* About */}
-      <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
         <h3 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
           <span className="material-symbols-outlined text-[18px]">info</span>
           About

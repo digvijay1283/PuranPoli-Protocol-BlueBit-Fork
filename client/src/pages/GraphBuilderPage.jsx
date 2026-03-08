@@ -147,11 +147,11 @@ function GraphBuilderPage() {
     <ReactFlowProvider>
       <div className="flex h-full flex-col">
         {/* Top bar */}
-        <div className="flex items-center justify-between border-b border-[#a390f9]/10 bg-white/80 px-6 py-3 backdrop-blur-md">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#b1b2ff]/10 bg-white/80 px-4 py-3 backdrop-blur-md sm:px-6">
           <div className="relative">
             <button
               type="button"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-left"
               onClick={() => setShowWsDropdown((prev) => !prev)}
             >
               <h1 className="text-lg font-bold text-slate-900">Graph Builder</h1>
@@ -164,7 +164,7 @@ function GraphBuilderPage() {
             </button>
 
             {showWsDropdown && (
-              <div className="absolute top-full left-0 z-50 mt-1 w-72 rounded-xl border border-[#a390f9]/20 bg-white shadow-2xl">
+              <div className="absolute top-full left-0 z-50 mt-1 w-[88vw] max-w-sm rounded-xl border border-[#b1b2ff]/20 bg-white shadow-2xl">
                 <div className="max-h-60 overflow-y-auto p-2">
                   {workspaces.length === 0 && (
                     <p className="px-3 py-2 text-xs text-slate-400">
@@ -174,9 +174,9 @@ function GraphBuilderPage() {
                   {workspaces.map((ws) => (
                     <div
                       key={ws._id}
-                      className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-[#a390f9]/5 ${
+                      className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-[#b1b2ff]/5 ${
                         ws._id === activeWorkspaceId
-                          ? "bg-[#a390f9]/10 font-bold text-[#6f59d9]"
+                          ? "bg-[#b1b2ff]/10 font-bold text-[#6d6fd8]"
                           : "text-slate-700"
                       }`}
                     >
@@ -205,10 +205,10 @@ function GraphBuilderPage() {
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-[#a390f9]/10 p-2">
+                <div className="border-t border-[#b1b2ff]/10 p-2">
                   <button
                     type="button"
-                    className="w-full rounded-lg px-3 py-2 text-xs font-bold text-[#6f59d9] hover:bg-[#a390f9]/5"
+                    className="w-full rounded-lg px-3 py-2 text-xs font-bold text-[#6d6fd8] hover:bg-[#b1b2ff]/5"
                     onClick={() => {
                       setShowWsDropdown(false);
                       handleCreateWorkspace();
@@ -221,10 +221,10 @@ function GraphBuilderPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
             <button
               type="button"
-              className="flex items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-bold text-orange-700 hover:bg-orange-100"
+              className="flex items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-bold text-orange-700 hover:bg-orange-100 sm:px-4"
               onClick={handleComputeRisks}
               title="Recalculate risk scores using external disruptions"
             >
@@ -233,14 +233,14 @@ function GraphBuilderPage() {
             </button>
             <button
               type="button"
-              className="rounded-xl border border-[#a390f9]/30 bg-white px-4 py-2 text-xs font-bold text-[#6f59d9] hover:bg-[#a390f9]/5"
+              className="rounded-xl border border-[#b1b2ff]/30 bg-white px-3 py-2 text-xs font-bold text-[#6d6fd8] hover:bg-[#b1b2ff]/5 sm:px-4"
               onClick={handleCreateWorkspace}
             >
               New Workspace
             </button>
             <button
               type="button"
-              className="rounded-xl bg-[#a390f9] px-4 py-2 text-xs font-bold text-white hover:bg-[#8f79f7]"
+              className="rounded-xl bg-[#b1b2ff] px-3 py-2 text-xs font-bold text-white hover:bg-[#9798f0] sm:px-4"
               onClick={handleLoadDemo}
             >
               Load Demo

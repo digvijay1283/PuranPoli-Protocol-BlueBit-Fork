@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import AppLayout from "./components/layout/AppLayout";
+import LandingPage from "./pages/LandingPage";
 import DashboardPage from "./pages/DashboardPage";
 import GraphBuilderPage from "./pages/GraphBuilderPage";
 import RiskAnalysisPage from "./pages/RiskAnalysisPage";
@@ -15,6 +16,10 @@ import LiveIntelFeed from "./pages/LiveIntelFeed";
 const router = createBrowserRouter([
   {
     path: "/",
+    element: <LandingPage />,
+  },
+  {
+    path: "/app",
     element: <AppLayout />,
     children: [
       { index: true, element: <DashboardPage /> },

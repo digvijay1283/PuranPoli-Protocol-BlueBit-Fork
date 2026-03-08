@@ -1,5 +1,5 @@
 @import "@xyflow/react/dist/style.css";
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 
 @tailwind base;
@@ -7,8 +7,8 @@
 @tailwind utilities;
 
 :root {
-	--primary: #a390f9;
-	--bg-light: #f6f5f8;
+	--primary: #b1b2ff;
+	--bg-light: #f8f6ff;
 	--bg-dark: #131022;
 }
 
@@ -24,7 +24,7 @@ body,
 }
 
 body {
-	font-family: "Plus Jakarta Sans", sans-serif;
+	font-family: "Space Grotesk", sans-serif;
 	background: var(--bg-light);
 }
 
@@ -40,7 +40,7 @@ body {
 
 .graph-grid {
 	background-size: 40px 40px;
-	background-image: radial-gradient(circle, #a390f922 1px, transparent 1px);
+	background-image: radial-gradient(circle, #b1b2ff22 1px, transparent 1px);
 }
 
 .react-flow__attribution {

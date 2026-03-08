@@ -73,11 +73,11 @@ function NodeCatalogModal({ nodeType, position, workspaceId, onSelect, onClose }
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl border border-[#a390f9]/20 bg-white shadow-2xl"
+        className="relative flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl border border-[#b1b2ff]/20 bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center gap-4 border-b border-[#a390f9]/10 px-6 py-4">
+        <div className="flex items-center gap-4 border-b border-[#b1b2ff]/10 px-6 py-4">
           <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${meta.iconClass}`}>
             <span className="material-symbols-outlined">{meta.icon}</span>
           </div>
@@ -92,8 +92,8 @@ function NodeCatalogModal({ nodeType, position, workspaceId, onSelect, onClose }
         </div>
 
         {/* Search */}
-        <div className="border-b border-[#a390f9]/5 px-6 py-3">
-          <div className="flex items-center gap-2 rounded-xl border border-[#a390f9]/10 bg-[#a390f9]/5 px-4 py-2.5">
+        <div className="border-b border-[#b1b2ff]/5 px-6 py-3">
+          <div className="flex items-center gap-2 rounded-xl border border-[#b1b2ff]/10 bg-[#b1b2ff]/5 px-4 py-2.5">
             <span className="material-symbols-outlined text-lg text-slate-400">search</span>
             <input
               className="w-full bg-transparent text-sm placeholder-slate-400 outline-none"
@@ -109,7 +109,7 @@ function NodeCatalogModal({ nodeType, position, workspaceId, onSelect, onClose }
         <div className="flex-1 overflow-y-auto px-4 py-3">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#a390f9] border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#b1b2ff] border-t-transparent" />
             </div>
           ) : filtered.length === 0 ? (
             <p className="py-10 text-center text-sm text-slate-400">No matching entities found.</p>
@@ -120,7 +120,7 @@ function NodeCatalogModal({ nodeType, position, workspaceId, onSelect, onClose }
                 return (
                   <div
                     key={item.catalogId}
-                    className="rounded-xl border border-[#a390f9]/10 bg-white transition-all hover:border-[#a390f9]/30 hover:shadow-lg hover:shadow-[#a390f9]/5"
+                    className="rounded-xl border border-[#b1b2ff]/10 bg-white transition-all hover:border-[#b1b2ff]/30 hover:shadow-lg hover:shadow-[#b1b2ff]/5"
                   >
                     {/* Summary row */}
                     <div
@@ -155,7 +155,7 @@ function NodeCatalogModal({ nodeType, position, workspaceId, onSelect, onClose }
 
                     {/* Expanded details */}
                     {isExpanded && (
-                      <div className="border-t border-[#a390f9]/5 px-4 py-3">
+                      <div className="border-t border-[#b1b2ff]/5 px-4 py-3">
                         <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-[11px]">
                           <Detail label="Region" value={item.region} />
                           <Detail label="Capacity" value={item.capacity?.toLocaleString()} />
@@ -174,7 +174,7 @@ function NodeCatalogModal({ nodeType, position, workspaceId, onSelect, onClose }
 
                         <button
                           type="button"
-                          className="mt-3 w-full rounded-lg bg-[#a390f9] py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#8f79f7]"
+                          className="mt-3 w-full rounded-lg bg-[#b1b2ff] py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#9798f0]"
                           onClick={() => handleSelect(item)}
                         >
                           Add to Graph
@@ -189,11 +189,11 @@ function NodeCatalogModal({ nodeType, position, workspaceId, onSelect, onClose }
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-[#a390f9]/10 px-6 py-3">
+        <div className="flex items-center justify-between border-t border-[#b1b2ff]/10 px-6 py-3">
           <p className="text-[11px] text-slate-400">{filtered.length} entities available</p>
           <button
             type="button"
-            className="rounded-xl border border-[#a390f9]/20 px-4 py-2 text-xs font-bold text-[#6f59d9] transition-colors hover:bg-[#a390f9]/5"
+            className="rounded-xl border border-[#b1b2ff]/20 px-4 py-2 text-xs font-bold text-[#6d6fd8] transition-colors hover:bg-[#b1b2ff]/5"
             onClick={handleCreateBlank}
           >
             + Create Blank Node

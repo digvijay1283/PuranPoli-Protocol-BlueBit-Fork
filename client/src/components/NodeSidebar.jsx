@@ -7,7 +7,7 @@ function NodeSidebar() {
   };
 
   return (
-    <aside className="hidden w-72 flex-col gap-6 overflow-y-auto border-r border-[#a390f9]/10 bg-white p-6 xl:flex">
+    <aside className="hidden w-72 flex-col gap-6 overflow-y-auto border-r border-[#b1b2ff]/10 bg-white p-6 xl:flex">
       <div>
         <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Node Library</h3>
 
@@ -18,7 +18,7 @@ function NodeSidebar() {
             return (
               <div
                 key={type}
-                className="group flex cursor-grab items-center gap-4 rounded-xl border border-[#a390f9]/5 bg-[#f6f5f8] p-3 transition-all hover:border-[#a390f9]/40 hover:bg-white hover:shadow-xl hover:shadow-[#a390f9]/5"
+                className="group flex cursor-grab items-center gap-4 rounded-xl border border-[#b1b2ff]/5 bg-[#f8f6ff] p-3 transition-all hover:border-[#b1b2ff]/40 hover:bg-white hover:shadow-xl hover:shadow-[#b1b2ff]/5"
                 draggable
                 onDragStart={(event) => onDragStart(event, type)}
               >
@@ -36,12 +36,12 @@ function NodeSidebar() {
         </div>
       </div>
 
-      <div className="mt-auto rounded-xl border border-[#a390f9]/10 bg-[#a390f9]/5 p-4">
-        <p className="mb-2 text-xs font-medium text-[#a390f9]">Graph Optimization</p>
+      <div className="mt-auto rounded-xl border border-[#b1b2ff]/10 bg-[#b1b2ff]/5 p-4">
+        <p className="mb-2 text-xs font-medium text-[#b1b2ff]">Graph Optimization</p>
         <p className="text-[11px] leading-relaxed text-slate-500">
           Auto-rebalance nodes based on real-time transit data from Tier 1 partners.
         </p>
-        <button className="mt-3 w-full rounded-lg bg-[#a390f9] py-2 text-xs font-bold text-white transition-colors hover:bg-[#8f79f7]">
+        <button className="mt-3 w-full rounded-lg bg-[#b1b2ff] py-2 text-xs font-bold text-white transition-colors hover:bg-[#9798f0]">
           Run Analytics
         </button>
       </div>

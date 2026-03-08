@@ -3,7 +3,7 @@ export const NODE_META = {
     title: "Raw Material",
     subtitle: "Input Node",
     icon: "inventory_2",
-    iconClass: "bg-[#a390f9] text-white",
+    iconClass: "bg-[#b1b2ff] text-white",
   },
   Tier3Supplier: {
     title: "Tier 3 Supplier",

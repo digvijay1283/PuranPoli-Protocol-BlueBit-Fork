@@ -100,13 +100,13 @@ const withRelationshipLabel = (edge, nodeTypeById) => {
     ...edge,
     label: relationship,
     labelStyle: {
-      fill: "#6f59d9",
+      fill: "#6d6fd8",
       fontSize: 11,
       fontWeight: 700,
     },
     labelBgStyle: {
       fill: "#ffffff",
-      stroke: "#a390f944",
+      stroke: "#b1b2ff44",
       strokeWidth: 1,
     },
     labelBgPadding: [6, 2],
@@ -176,13 +176,13 @@ function GraphCanvas({ onNodeSelect, refreshToken, setRefreshToken, workspaceId 
               id: edgeId,
               label: relationship,
               labelStyle: {
-                fill: "#6f59d9",
+                fill: "#6d6fd8",
                 fontSize: 11,
                 fontWeight: 700,
               },
               labelBgStyle: {
                 fill: "#ffffff",
-                stroke: "#a390f944",
+                stroke: "#b1b2ff44",
                 strokeWidth: 1,
               },
               labelBgPadding: [6, 2],
@@ -306,7 +306,7 @@ function GraphCanvas({ onNodeSelect, refreshToken, setRefreshToken, workspaceId 
         defaultEdgeOptions={{
           animated: false,
           style: {
-            stroke: "#a390f9",
+            stroke: "#b1b2ff",
             strokeWidth: 2,
             strokeDasharray: "4 4",
           },
@@ -326,21 +326,21 @@ function GraphCanvas({ onNodeSelect, refreshToken, setRefreshToken, workspaceId 
         minZoom={0.3}
         maxZoom={1.8}
       >
-        <Background gap={40} size={1} color="#a390f933" />
+        <Background gap={40} size={1} color="#b1b2ff33" />
 
         <MiniMap
           position="top-right"
           pannable
           zoomable
-          className="!mt-4 !mr-4 !h-32 !w-52 !rounded-xl !border !border-[#a390f9]/20 !bg-white/90 !shadow-xl"
-          nodeColor="#a390f9"
+          className="!mt-4 !mr-4 !h-32 !w-52 !rounded-xl !border !border-[#b1b2ff]/20 !bg-white/90 !shadow-xl"
+          nodeColor="#b1b2ff"
         />
 
         <Panel position="bottom-left">
-          <div className="flex items-center gap-2 rounded-xl border border-[#a390f9]/10 bg-white/80 p-2 shadow-xl backdrop-blur-sm">
+          <div className="flex items-center gap-2 rounded-xl border border-[#b1b2ff]/10 bg-white/80 p-2 shadow-xl backdrop-blur-sm">
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-[#a390f9]/10"
+              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-[#b1b2ff]/10"
               onClick={() => zoomIn({ duration: 200 })}
               title="Zoom In"
             >
@@ -349,7 +349,7 @@ function GraphCanvas({ onNodeSelect, refreshToken, setRefreshToken, workspaceId 
 
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-[#a390f9]/10"
+              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-[#b1b2ff]/10"
               onClick={() => zoomOut({ duration: 200 })}
               title="Zoom Out"
             >
@@ -360,7 +360,7 @@ function GraphCanvas({ onNodeSelect, refreshToken, setRefreshToken, workspaceId 
 
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-[#a390f9]/10"
+              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-[#b1b2ff]/10"
               onClick={() => fitView({ duration: 300, padding: 0.2 })}
               title="Fit View"
             >
@@ -371,7 +371,7 @@ function GraphCanvas({ onNodeSelect, refreshToken, setRefreshToken, workspaceId 
 
         {selectedEdgeId && (
           <Panel position="top-left">
-            <div className="ml-4 mt-4 flex items-center gap-3 rounded-xl border border-[#a390f9]/20 bg-white/95 px-4 py-2 shadow-lg backdrop-blur-sm">
+            <div className="ml-4 mt-4 flex items-center gap-3 rounded-xl border border-[#b1b2ff]/20 bg-white/95 px-4 py-2 shadow-lg backdrop-blur-sm">
               <div>
                 <p className="text-[10px] font-bold uppercase text-slate-400">Selected Edge</p>
                 <p className="text-xs font-semibold text-slate-700">{selectedEdgeId}</p>

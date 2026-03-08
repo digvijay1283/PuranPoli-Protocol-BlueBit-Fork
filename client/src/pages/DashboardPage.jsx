@@ -5,7 +5,7 @@ import { getDisruptions, getHighRisk } from "../services/disruptionApi";
 
 function KpiCard({ icon, iconClass, label, value, sub }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+    <div className="flex items-center gap-4 rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
       <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconClass}`}>
         <span className="material-symbols-outlined text-[22px]">{icon}</span>
       </div>
@@ -104,7 +104,7 @@ function DashboardPage() {
     return (
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
-          <span className="material-symbols-outlined animate-spin text-4xl text-[#a390f9]">progress_activity</span>
+          <span className="material-symbols-outlined animate-spin text-4xl text-[#b1b2ff]">progress_activity</span>
           <p className="mt-2 text-sm text-slate-500">Loading dashboard...</p>
         </div>
       </div>
@@ -114,16 +114,16 @@ function DashboardPage() {
   if (!stats || stats.totalNodes === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#a390f9]/10">
-          <span className="material-symbols-outlined text-4xl text-[#a390f9]">hub</span>
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#b1b2ff]/10">
+          <span className="material-symbols-outlined text-4xl text-[#b1b2ff]">hub</span>
         </div>
         <h2 className="text-xl font-bold text-slate-900">No Graph Data Yet</h2>
         <p className="max-w-sm text-center text-sm text-slate-500">
           Head to the Graph Builder to create your supply chain network, or load the demo to explore.
         </p>
         <Link
-          to="/graph"
-          className="rounded-xl bg-[#a390f9] px-6 py-3 text-sm font-bold text-white hover:bg-[#8f79f7]"
+          to="/app/graph"
+          className="rounded-xl bg-[#b1b2ff] px-6 py-3 text-sm font-bold text-white hover:bg-[#9798f0]"
         >
           Open Graph Builder
         </Link>
@@ -140,16 +140,16 @@ function DashboardPage() {
     .slice(0, 5);
 
   return (
-    <div className="flex flex-col gap-8 p-8">
+    <div className="flex flex-col gap-6 p-4 sm:p-6 lg:gap-8 lg:p-8">
       {/* Header */}
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
           <p className="text-sm text-slate-500">Supply chain overview and key metrics</p>
         </div>
         <button
           type="button"
-          className="flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-5 py-2.5 text-xs font-bold text-orange-700 hover:bg-orange-100 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-5 py-2.5 text-xs font-bold text-orange-700 hover:bg-orange-100 disabled:opacity-50 sm:w-auto"
           onClick={handleComputeRisks}
           disabled={computing}
         >
@@ -160,7 +160,7 @@ function DashboardPage() {
 
       {/* KPI Strip */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <KpiCard icon="hub" iconClass="bg-[#a390f9]/10 text-[#a390f9]" label="Total Nodes" value={stats.totalNodes} />
+        <KpiCard icon="hub" iconClass="bg-[#b1b2ff]/10 text-[#b1b2ff]" label="Total Nodes" value={stats.totalNodes} />
         <KpiCard icon="timeline" iconClass="bg-blue-50 text-blue-600" label="Total Edges" value={stats.totalEdges} />
         <KpiCard
           icon="speed"
@@ -187,7 +187,7 @@ function DashboardPage() {
 
       {/* Risk Probability Distribution */}
       {stats.totalNodes > 0 && (
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             { label: "Low", color: "bg-green-100 text-green-700 border-green-200", count: stats.probCounts.Low },
             { label: "Moderate", color: "bg-yellow-100 text-yellow-700 border-yellow-200", count: stats.probCounts.Moderate },
@@ -205,7 +205,7 @@ function DashboardPage() {
       {/* Grid: Type breakdown + Geography + High-risk table */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* By Type */}
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
           <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Nodes by Type</h3>
           <div className="space-y-3">
             {topTypes.map(([type, count]) => {
@@ -217,7 +217,7 @@ function DashboardPage() {
                     <span className="text-xs text-slate-400">{count} ({pct}%)</span>
                   </div>
                   <div className="mt-1 h-2 w-full rounded-full bg-slate-100">
-                    <div className="h-2 rounded-full bg-[#a390f9]" style={{ width: `${pct}%` }} />
+                    <div className="h-2 rounded-full bg-[#b1b2ff]" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               );
@@ -226,7 +226,7 @@ function DashboardPage() {
         </div>
 
         {/* By Country */}
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
           <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Geographic Spread</h3>
           <div className="space-y-3">
             {topCountries.map(([country, count]) => {
@@ -250,22 +250,22 @@ function DashboardPage() {
         </div>
 
         {/* Quick actions */}
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
           <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Quick Actions</h3>
           <div className="space-y-3">
             <Link
-              to="/graph"
-              className="flex items-center gap-3 rounded-xl border border-[#a390f9]/10 p-4 transition-colors hover:border-[#a390f9]/30 hover:bg-[#a390f9]/5"
+              to="/app/graph"
+              className="flex items-center gap-3 rounded-xl border border-[#b1b2ff]/10 p-4 transition-colors hover:border-[#b1b2ff]/30 hover:bg-[#b1b2ff]/5"
             >
-              <span className="material-symbols-outlined text-[#a390f9]">edit</span>
+              <span className="material-symbols-outlined text-[#b1b2ff]">edit</span>
               <div>
                 <p className="text-sm font-semibold text-slate-700">Edit Graph</p>
                 <p className="text-[11px] text-slate-400">Add or modify supply chain nodes</p>
               </div>
             </Link>
             <Link
-              to="/risk"
-              className="flex items-center gap-3 rounded-xl border border-[#a390f9]/10 p-4 transition-colors hover:border-[#a390f9]/30 hover:bg-[#a390f9]/5"
+              to="/app/risk"
+              className="flex items-center gap-3 rounded-xl border border-[#b1b2ff]/10 p-4 transition-colors hover:border-[#b1b2ff]/30 hover:bg-[#b1b2ff]/5"
             >
               <span className="material-symbols-outlined text-orange-500">shield</span>
               <div>
@@ -274,8 +274,8 @@ function DashboardPage() {
               </div>
             </Link>
             <Link
-              to="/simulation"
-              className="flex items-center gap-3 rounded-xl border border-[#a390f9]/10 p-4 transition-colors hover:border-[#a390f9]/30 hover:bg-[#a390f9]/5"
+              to="/app/simulation"
+              className="flex items-center gap-3 rounded-xl border border-[#b1b2ff]/10 p-4 transition-colors hover:border-[#b1b2ff]/30 hover:bg-[#b1b2ff]/5"
             >
               <span className="material-symbols-outlined text-blue-500">science</span>
               <div>
@@ -284,8 +284,8 @@ function DashboardPage() {
               </div>
             </Link>
             <Link
-              to="/reports"
-              className="flex items-center gap-3 rounded-xl border border-[#a390f9]/10 p-4 transition-colors hover:border-[#a390f9]/30 hover:bg-[#a390f9]/5"
+              to="/app/reports"
+              className="flex items-center gap-3 rounded-xl border border-[#b1b2ff]/10 p-4 transition-colors hover:border-[#b1b2ff]/30 hover:bg-[#b1b2ff]/5"
             >
               <span className="material-symbols-outlined text-emerald-500">download</span>
               <div>
@@ -299,7 +299,7 @@ function DashboardPage() {
 
       {/* High-risk nodes table */}
       {stats.highRiskNodes.length > 0 && (
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
           <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
             High Risk Nodes ({stats.highRiskNodes.length})
           </h3>
@@ -314,9 +314,6 @@ function DashboardPage() {
                   <th className="pb-3 pr-4">Probability</th>
                   <th className="pb-3 pr-4">External</th>
                   <th className="pb-3">Compliance</th>
-                  <th className="pb-3 pr-4">Risk</th>
-                  <th className="pb-3 pr-4">Lead Time</th>
-                  <th className="pb-3">Compliance</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -326,7 +323,7 @@ function DashboardPage() {
                     <tr key={node.id} className="text-slate-700">
                       <td className="py-3 pr-4 font-medium">{node.data?.name}</td>
                       <td className="py-3 pr-4">
-                        <span className="rounded bg-[#a390f9]/10 px-2 py-0.5 text-[10px] font-medium text-[#6f59d9]">
+                        <span className="rounded bg-[#b1b2ff]/10 px-2 py-0.5 text-[10px] font-medium text-[#6d6fd8]">
                           {node.data?.type}
                         </span>
                       </td>
@@ -361,7 +358,7 @@ function DashboardPage() {
               <span className="material-symbols-outlined text-[16px]">bolt</span>
               External Disruption Alerts
             </h3>
-            <Link to="/disruptions" className="text-xs font-bold text-orange-600 hover:text-orange-800">View all →</Link>
+            <Link to="/app/disruptions" className="text-xs font-bold text-orange-600 hover:text-orange-800">View all →</Link>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {disruptions.slice(0, 6).map((d) => (

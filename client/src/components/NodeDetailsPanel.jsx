@@ -81,23 +81,23 @@ function NodeDetailsPanel({ node, onClose, onSave, onDelete, isSaving }) {
   const dashOffset = circumference - (riskValue / 100) * circumference;
 
   return (
-    <aside className="w-80 overflow-y-auto border-l border-[#a390f9]/10 bg-white p-6">
+    <aside className="fixed inset-x-0 bottom-16 top-0 z-40 overflow-y-auto border-l border-[#b1b2ff]/10 bg-white p-4 sm:p-6 md:static md:inset-auto md:w-80">
       <div className="mb-8">
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">Node Inspector</h3>
           <button
             type="button"
-            className="material-symbols-outlined text-slate-400 transition-colors hover:text-[#a390f9]"
+            className="material-symbols-outlined text-slate-400 transition-colors hover:text-[#b1b2ff]"
             onClick={onClose}
           >
             close
           </button>
         </div>
 
-        <div className="flex flex-col items-center justify-center border-b border-[#a390f9]/5 py-6">
+        <div className="flex flex-col items-center justify-center border-b border-[#b1b2ff]/5 py-6">
           <div className="relative flex items-center justify-center">
             <svg className="h-40 w-40 -rotate-90">
-              <circle cx="80" cy="80" r="72" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-[#a390f9]/10" />
+              <circle cx="80" cy="80" r="72" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-[#b1b2ff]/10" />
               <circle
                 cx="80"
                 cy="80"
@@ -106,7 +106,7 @@ function NodeDetailsPanel({ node, onClose, onSave, onDelete, isSaving }) {
                 stroke="currentColor"
                 strokeWidth="12"
                 strokeLinecap="round"
-                className={riskValue > 60 ? "text-red-500" : riskValue > 30 ? "text-yellow-500" : "text-[#a390f9]"}
+                className={riskValue > 60 ? "text-red-500" : riskValue > 30 ? "text-yellow-500" : "text-[#b1b2ff]"}
                 style={{
                   strokeDasharray: circumference,
                   strokeDashoffset: dashOffset,
@@ -125,7 +125,7 @@ function NodeDetailsPanel({ node, onClose, onSave, onDelete, isSaving }) {
               <p className="text-lg font-bold text-slate-900">{formState.lead_time_days || 0}d</p>
               <p className="text-[8px] uppercase text-slate-400">Lead Time</p>
             </div>
-            <div className="h-8 w-px bg-[#a390f9]/10" />
+            <div className="h-8 w-px bg-[#b1b2ff]/10" />
             <div>
               <p className="text-lg font-bold text-slate-900">{formState.capacity || 0}</p>
               <p className="text-[8px] uppercase text-slate-400">Capacity</p>
@@ -325,7 +325,7 @@ function NodeDetailsPanel({ node, onClose, onSave, onDelete, isSaving }) {
                         href={d.raw_source_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-1 inline-block text-[9px] font-medium text-[#6f59d9] hover:underline"
+                        className="mt-1 inline-block text-[9px] font-medium text-[#6d6fd8] hover:underline"
                       >
                         View source article →
                       </a>
@@ -339,7 +339,7 @@ function NodeDetailsPanel({ node, onClose, onSave, onDelete, isSaving }) {
                               href={art.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="font-medium text-[#6f59d9] hover:underline"
+                              className="font-medium text-[#6d6fd8] hover:underline"
                             >
                               {art.title}
                             </a>
@@ -380,7 +380,7 @@ function NodeDetailsPanel({ node, onClose, onSave, onDelete, isSaving }) {
             <div className="space-y-2">
               {news.negative.slice(0, 5).map((n, i) => (
                 <div key={i} className="rounded-lg bg-white p-2 text-[10px]">
-                  <a href={n.url} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-700 hover:text-[#6f59d9]">{n.title}</a>
+                  <a href={n.url} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-700 hover:text-[#6d6fd8]">{n.title}</a>
                   <div className="mt-0.5 flex items-center gap-2 text-[9px] text-slate-400">
                     <span>{n.source}</span>
                     <span className="rounded bg-red-100 px-1 py-0.5 text-red-600">sentiment: {n.sentiment}</span>
@@ -401,7 +401,7 @@ function NodeDetailsPanel({ node, onClose, onSave, onDelete, isSaving }) {
             <div className="space-y-2">
               {news.positive.slice(0, 5).map((n, i) => (
                 <div key={i} className="rounded-lg bg-white p-2 text-[10px]">
-                  <a href={n.url} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-700 hover:text-[#6f59d9]">{n.title}</a>
+                  <a href={n.url} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-700 hover:text-[#6d6fd8]">{n.title}</a>
                   <div className="mt-0.5 flex items-center gap-2 text-[9px] text-slate-400">
                     <span>{n.source}</span>
                     <span className="rounded bg-green-100 px-1 py-0.5 text-green-600">sentiment: +{n.sentiment}</span>
@@ -427,7 +427,7 @@ function NodeDetailsPanel({ node, onClose, onSave, onDelete, isSaving }) {
 
             {field.type === "select" ? (
               <select
-                className="w-full rounded-xl border border-[#a390f9]/10 bg-[#a390f9]/5 px-4 py-3 text-sm font-medium focus:border-[#a390f9] focus:ring-1 focus:ring-[#a390f9]"
+                className="w-full rounded-xl border border-[#b1b2ff]/10 bg-[#b1b2ff]/5 px-4 py-3 text-sm font-medium focus:border-[#b1b2ff] focus:ring-1 focus:ring-[#b1b2ff]"
                 value={formState[field.key] ?? ""}
                 onChange={(event) => handleChange(field.key, event.target.value, "text")}
               >
@@ -439,7 +439,7 @@ function NodeDetailsPanel({ node, onClose, onSave, onDelete, isSaving }) {
               <div className="flex items-center gap-3 pt-1">
                 <input
                   type="checkbox"
-                  className="h-5 w-5 rounded border-[#a390f9]/20 text-[#a390f9] focus:ring-[#a390f9]"
+                  className="h-5 w-5 rounded border-[#b1b2ff]/20 text-[#b1b2ff] focus:ring-[#b1b2ff]"
                   checked={!!formState[field.key]}
                   onChange={(event) => handleChange(field.key, event.target.checked, "checkbox")}
                 />
@@ -447,7 +447,7 @@ function NodeDetailsPanel({ node, onClose, onSave, onDelete, isSaving }) {
               </div>
             ) : (
               <input
-                className="w-full rounded-xl border border-[#a390f9]/10 bg-[#a390f9]/5 px-4 py-3 text-sm font-medium focus:border-[#a390f9] focus:ring-1 focus:ring-[#a390f9]"
+                className="w-full rounded-xl border border-[#b1b2ff]/10 bg-[#b1b2ff]/5 px-4 py-3 text-sm font-medium focus:border-[#b1b2ff] focus:ring-1 focus:ring-[#b1b2ff]"
                 type={field.type}
                 value={formState[field.key] ?? ""}
                 disabled={field.disabled}

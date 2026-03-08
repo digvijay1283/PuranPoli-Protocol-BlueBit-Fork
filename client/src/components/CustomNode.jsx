@@ -43,11 +43,11 @@ function CustomNode({ data }) {
           : typeClass
       } ${riskClass(data.risk_score, data.risk_probability)}`}
     >
-      <Handle type="target" position={Position.Left} className="!h-3 !w-3 !bg-[#a390f9]" />
+      <Handle type="target" position={Position.Left} className="!h-3 !w-3 !bg-[#b1b2ff]" />
 
       <div className="mb-3 flex items-center gap-3">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-lg shadow-[#a390f9]/20 ${meta.iconClass}`}
+          className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-lg shadow-[#b1b2ff]/20 ${meta.iconClass}`}
         >
           <span className="material-symbols-outlined text-[18px]">{meta.icon}</span>
         </div>
@@ -59,7 +59,7 @@ function CustomNode({ data }) {
       </div>
 
       <div className="flex flex-wrap gap-1">
-        <span className="rounded bg-[#a390f9]/10 px-2 py-0.5 text-[10px] font-medium text-[#6f59d9]">
+        <span className="rounded bg-[#b1b2ff]/10 px-2 py-0.5 text-[10px] font-medium text-[#6d6fd8]">
           {data.type}
         </span>
         <span className="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
@@ -89,7 +89,7 @@ function CustomNode({ data }) {
         )}
       </div>
 
-      <Handle type="source" position={Position.Right} className="!h-3 !w-3 !bg-[#a390f9]" />
+      <Handle type="source" position={Position.Right} className="!h-3 !w-3 !bg-[#b1b2ff]" />
     </div>
   );
 }

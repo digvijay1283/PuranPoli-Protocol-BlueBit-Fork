@@ -51,14 +51,22 @@ export default function RiskAnalysisPage() {
   const [filterType, setFilterType] = useState("all");
 
   const [computing, setComputing] = useState(false);
+  const activeWorkspace = workspaces.find((w) => w._id === activeWorkspaceId);
 
   const handleComputeRisks = async () => {
+    if (!activeWorkspaceId) return;
     setComputing(true);
     try {
-      await graphApi.computeRisks();
-      const graphData = await graphApi.getGraph();
+      await graphApi.computeRisks(activeWorkspaceId);
+      const graphData = await graphApi.getGraph(activeWorkspaceId);
       setNodes(graphData.nodes || []);
       setEdges(graphData.edges || []);
+
+      const pred = await analyticsApi.predictGraph({
+        nodes: graphData.nodes || [],
+        edges: graphData.edges || [],
+      });
+      setAnalytics(pred?.predictions || null);
     } catch (error) {
       console.error("Failed to compute risks", error);
     } finally {
@@ -118,7 +126,7 @@ export default function RiskAnalysisPage() {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <span className="material-symbols-outlined animate-spin text-4xl text-[#a390f9]">progress_activity</span>
+        <span className="material-symbols-outlined animate-spin text-4xl text-[#b1b2ff]">progress_activity</span>
       </div>
     );
   }
@@ -164,7 +172,7 @@ export default function RiskAnalysisPage() {
 
   const SortIcon = ({ field }) => {
     if (sortBy !== field) return <span className="material-symbols-outlined text-[14px] text-slate-300">unfold_more</span>;
-    return <span className="material-symbols-outlined text-[14px] text-[#a390f9]">{sortDir === "desc" ? "expand_more" : "expand_less"}</span>;
+    return <span className="material-symbols-outlined text-[14px] text-[#b1b2ff]">{sortDir === "desc" ? "expand_more" : "expand_less"}</span>;
   };
 
   const spof = analytics?.single_point_of_failure;
@@ -181,16 +189,42 @@ export default function RiskAnalysisPage() {
   (analytics?.node_predictions || []).forEach((p) => { nodePredsMap[p.node_id] = p; });
 
   return (
-    <div className="flex flex-col gap-8 p-8">
+    <div className="flex flex-col gap-6 p-4 sm:p-6 lg:gap-8 lg:p-8">
       {/* Header */}
-      <div className="flex items-end justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex-1">
           <h1 className="text-2xl font-bold text-slate-900">Risk Analysis</h1>
           <p className="text-sm text-slate-500">Identify vulnerabilities across your supply chain</p>
+
+          {workspaces.length > 0 && (
+            <div className="mt-3 w-full sm:w-80">
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                Workspace
+              </label>
+              <select
+                value={activeWorkspaceId || ""}
+                onChange={(e) => {
+                  const nextId = e.target.value;
+                  setActiveWorkspaceId(nextId);
+                  localStorage.setItem("activeWorkspaceId", nextId);
+                }}
+                className="w-full rounded-xl border border-[#b1b2ff]/20 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:border-[#b1b2ff] focus:outline-none focus:ring-1 focus:ring-[#b1b2ff]"
+              >
+                {workspaces.map((w) => (
+                  <option key={w._id} value={w._id}>
+                    {w.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Showing data for {activeWorkspace?.name || "selected workspace"}
+              </p>
+            </div>
+          )}
         </div>
         <button
           type="button"
-          className="flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-5 py-2.5 text-xs font-bold text-orange-700 hover:bg-orange-100 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-5 py-2.5 text-xs font-bold text-orange-700 hover:bg-orange-100 disabled:opacity-50 sm:w-auto"
           onClick={handleComputeRisks}
           disabled={computing}
         >
@@ -201,7 +235,7 @@ export default function RiskAnalysisPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="flex items-center gap-4 rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-4 rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
           <RiskGauge value={avgRisk} size={80} />
           <div>
             <p className="text-xs text-slate-500">Average Risk</p>
@@ -209,7 +243,7 @@ export default function RiskAnalysisPage() {
           </div>
         </div>
 
-        <div className="flex flex-col justify-center rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+        <div className="flex flex-col justify-center rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
           <p className="text-xs text-slate-500">Highest Risk</p>
           <p className="text-2xl font-black text-red-600">{maxRisk}%</p>
           <p className="text-[10px] text-slate-400">
@@ -217,9 +251,9 @@ export default function RiskAnalysisPage() {
           </p>
         </div>
 
-        <div className="flex flex-col justify-center rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+        <div className="flex flex-col justify-center rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
           <p className="text-xs text-slate-500">Risk Distribution</p>
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex flex-wrap gap-2">
             <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">{criticalCount} Critical</span>
             <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">{highCount} High</span>
             <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold text-yellow-700">{mediumCount} Med</span>
@@ -227,7 +261,7 @@ export default function RiskAnalysisPage() {
           </div>
         </div>
 
-        <div className="flex flex-col justify-center rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+        <div className="flex flex-col justify-center rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
           <p className="text-xs text-slate-500">Network Connections</p>
           <p className="text-2xl font-black text-slate-900">{edges.length}</p>
           <p className="text-[10px] text-slate-400">supply chain links</p>
@@ -243,8 +277,8 @@ export default function RiskAnalysisPage() {
       {analytics && (
         <>
           {/* KPI summary row */}
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
-            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
               <p className="text-xs text-slate-500">Single Point Failures</p>
               <p className="text-2xl font-black text-slate-900">
                 {liveSummary?.single_point_failures ?? 0}
@@ -254,7 +288,7 @@ export default function RiskAnalysisPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
               <p className="text-xs text-slate-500">Geographic Concentration (HHI)</p>
               <p className="text-2xl font-black text-slate-900">
                 {geoLive?.hhi_country ?? 0}
@@ -264,7 +298,7 @@ export default function RiskAnalysisPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
               <p className="text-xs text-slate-500">Avg Chain Reliability</p>
               <p className="text-2xl font-black text-slate-900">
                 {Math.round(100 - (liveSummary?.avg_predicted_risk || 0))}
@@ -272,7 +306,7 @@ export default function RiskAnalysisPage() {
               <p className="text-[11px] text-slate-400">out of 100</p>
             </div>
 
-            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
               <p className="text-xs text-slate-500">High Mismatch Nodes</p>
               <p className="text-2xl font-black text-slate-900">
                 {mismatchRanking.filter((n) => n.mismatch_index > 50).length}
@@ -285,7 +319,7 @@ export default function RiskAnalysisPage() {
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             {/* ── SPOF Panel ─────────────────────────────────────────── */}
-            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
               <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                 Single Point Of Failure Identification
               </h3>
@@ -321,7 +355,7 @@ export default function RiskAnalysisPage() {
             </div>
 
             {/* ── Geographic Concentration Panel ─────────────────────── */}
-            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
               <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                 Geographic Concentration Risk
               </h3>
@@ -346,7 +380,7 @@ export default function RiskAnalysisPage() {
             </div>
 
             {/* ── Supplier Reliability Panel ──────────────────────────── */}
-            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
               <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                 Supplier Reliability Scoring
               </h3>
@@ -374,7 +408,7 @@ export default function RiskAnalysisPage() {
             </div>
 
             {/* ── Demand-Supply Mismatch Panel ────────────────────────── */}
-            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
               <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                 Demand-Supply Mismatch Detection
               </h3>
@@ -407,7 +441,7 @@ export default function RiskAnalysisPage() {
       )}
 
       {/* Risk by node type */}
-      <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
         <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Risk by Node Type</h3>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {typeRiskEntries.map(({ type, avg, count }) => {
@@ -435,7 +469,7 @@ export default function RiskAnalysisPage() {
       </div>
 
       {/* Node risk table */}
-      <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">
             All Nodes ({filteredNodes.length})
@@ -482,7 +516,7 @@ export default function RiskAnalysisPage() {
                 <tr key={node.id} className="text-slate-700 transition-colors hover:bg-slate-50/50">
                   <td className="py-3 pr-4 font-medium">{node.data?.name}</td>
                   <td className="py-3 pr-4">
-                    <span className="rounded bg-[#a390f9]/10 px-2 py-0.5 text-[10px] font-medium text-[#6f59d9]">
+                    <span className="rounded bg-[#b1b2ff]/10 px-2 py-0.5 text-[10px] font-medium text-[#6d6fd8]">
                       {node.data?.type}
                     </span>
                   </td>

@@ -106,7 +106,7 @@ function ReportsPage() {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <span className="material-symbols-outlined animate-spin text-4xl text-[#a390f9]">progress_activity</span>
+        <span className="material-symbols-outlined animate-spin text-4xl text-[#b1b2ff]">progress_activity</span>
       </div>
     );
   }
@@ -121,7 +121,7 @@ function ReportsPage() {
       title: "Full Graph Report",
       desc: "Complete network export with nodes, edges, and summary statistics",
       icon: "description",
-      iconClass: "bg-[#a390f9]/10 text-[#a390f9]",
+      iconClass: "bg-[#b1b2ff]/10 text-[#b1b2ff]",
       action: exportFullGraph,
       format: "JSON",
     },
@@ -157,11 +157,11 @@ function ReportsPage() {
           <p className="text-sm text-slate-500">Generate and download supply chain reports</p>
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl border border-[#a390f9]/10 bg-white p-1">
+        <div className="flex items-center gap-2 rounded-xl border border-[#b1b2ff]/10 bg-white p-1">
           <button
             type="button"
             className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-              exportFormat === "csv" ? "bg-[#a390f9] text-white" : "text-slate-500 hover:text-slate-700"
+              exportFormat === "csv" ? "bg-[#b1b2ff] text-white" : "text-slate-500 hover:text-slate-700"
             }`}
             onClick={() => setExportFormat("csv")}
           >
@@ -170,7 +170,7 @@ function ReportsPage() {
           <button
             type="button"
             className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-              exportFormat === "json" ? "bg-[#a390f9] text-white" : "text-slate-500 hover:text-slate-700"
+              exportFormat === "json" ? "bg-[#b1b2ff] text-white" : "text-slate-500 hover:text-slate-700"
             }`}
             onClick={() => setExportFormat("json")}
           >
@@ -181,17 +181,17 @@ function ReportsPage() {
 
       {/* Summary snapshot */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
           <p className="text-[10px] font-bold uppercase text-slate-400">Total Records</p>
           <p className="text-3xl font-black text-slate-900">{nodes.length + edges.length}</p>
           <p className="text-[10px] text-slate-400">{nodes.length} nodes + {edges.length} edges</p>
         </div>
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
           <p className="text-[10px] font-bold uppercase text-slate-400">Avg Risk Score</p>
           <p className="text-3xl font-black text-slate-900">{avgRisk}%</p>
           <p className="text-[10px] text-slate-400">across all nodes</p>
         </div>
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-5 shadow-sm">
           <p className="text-[10px] font-bold uppercase text-slate-400">Node Types</p>
           <p className="text-3xl font-black text-slate-900">{new Set(nodes.map((n) => n.data?.type)).size}</p>
           <p className="text-[10px] text-slate-400">unique categories</p>
@@ -201,7 +201,7 @@ function ReportsPage() {
       {/* Export cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {reportCards.map((card) => (
-          <div key={card.title} className="flex items-start gap-4 rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+          <div key={card.title} className="flex items-start gap-4 rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
             <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${card.iconClass}`}>
               <span className="material-symbols-outlined">{card.icon}</span>
             </div>
@@ -210,7 +210,7 @@ function ReportsPage() {
               <p className="mt-1 text-xs text-slate-500">{card.desc}</p>
               <button
                 type="button"
-                className="mt-3 flex items-center gap-1 rounded-lg bg-[#a390f9]/10 px-3 py-1.5 text-xs font-bold text-[#a390f9] transition-colors hover:bg-[#a390f9]/20"
+                className="mt-3 flex items-center gap-1 rounded-lg bg-[#b1b2ff]/10 px-3 py-1.5 text-xs font-bold text-[#b1b2ff] transition-colors hover:bg-[#b1b2ff]/20"
                 onClick={card.action}
               >
                 <span className="material-symbols-outlined text-[16px]">download</span>
@@ -222,7 +222,7 @@ function ReportsPage() {
       </div>
 
       {/* Preview table of recent nodes */}
-      <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-6 shadow-sm">
         <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Data Preview (first 10 nodes)</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -240,7 +240,7 @@ function ReportsPage() {
                 <tr key={node.id} className="text-slate-700">
                   <td className="py-3 pr-4 font-medium">{node.data?.name}</td>
                   <td className="py-3 pr-4">
-                    <span className="rounded bg-[#a390f9]/10 px-2 py-0.5 text-[10px] font-medium text-[#6f59d9]">
+                    <span className="rounded bg-[#b1b2ff]/10 px-2 py-0.5 text-[10px] font-medium text-[#6d6fd8]">
                       {node.data?.type}
                     </span>
                   </td>

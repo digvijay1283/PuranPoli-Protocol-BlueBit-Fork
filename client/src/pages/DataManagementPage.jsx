@@ -265,7 +265,7 @@ function DataManagementPage() {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <span className="material-symbols-outlined animate-spin text-4xl text-[#a390f9]">progress_activity</span>
+        <span className="material-symbols-outlined animate-spin text-4xl text-[#b1b2ff]">progress_activity</span>
       </div>
     );
   }
@@ -283,7 +283,7 @@ function DataManagementPage() {
             <>
               <button
                 type="button"
-                className="flex items-center gap-1 rounded-xl border border-[#a390f9]/30 bg-white px-4 py-2 text-xs font-bold text-[#6f59d9] hover:bg-[#a390f9]/5"
+                className="flex items-center gap-1 rounded-xl border border-[#b1b2ff]/30 bg-white px-4 py-2 text-xs font-bold text-[#6d6fd8] hover:bg-[#b1b2ff]/5"
                 onClick={handleSeedCatalog}
               >
                 <span className="material-symbols-outlined text-[16px]">database</span>
@@ -291,7 +291,7 @@ function DataManagementPage() {
               </button>
               <button
                 type="button"
-                className="flex items-center gap-1 rounded-xl bg-[#a390f9] px-4 py-2 text-xs font-bold text-white hover:bg-[#8f79f7]"
+                className="flex items-center gap-1 rounded-xl bg-[#b1b2ff] px-4 py-2 text-xs font-bold text-white hover:bg-[#9798f0]"
                 onClick={openCreateForm}
               >
                 <span className="material-symbols-outlined text-[16px]">add</span>
@@ -303,7 +303,7 @@ function DataManagementPage() {
             <>
               <button
                 type="button"
-                className="flex items-center gap-1 rounded-xl border border-[#a390f9]/30 bg-white px-4 py-2 text-xs font-bold text-[#6f59d9] hover:bg-[#a390f9]/5"
+                className="flex items-center gap-1 rounded-xl border border-[#b1b2ff]/30 bg-white px-4 py-2 text-xs font-bold text-[#6d6fd8] hover:bg-[#b1b2ff]/5"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <span className="material-symbols-outlined text-[16px]">upload</span>
@@ -312,7 +312,7 @@ function DataManagementPage() {
               <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
               <button
                 type="button"
-                className="flex items-center gap-1 rounded-xl bg-[#a390f9] px-4 py-2 text-xs font-bold text-white hover:bg-[#8f79f7]"
+                className="flex items-center gap-1 rounded-xl bg-[#b1b2ff] px-4 py-2 text-xs font-bold text-white hover:bg-[#9798f0]"
                 onClick={handleLoadDemo}
               >
                 <span className="material-symbols-outlined text-[16px]">science</span>
@@ -346,23 +346,23 @@ function DataManagementPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-4 shadow-sm text-center">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-4 shadow-sm text-center">
           <p className="text-2xl font-black text-slate-900">{catalogTotal}</p>
           <p className="text-[10px] font-bold uppercase text-slate-400">Catalog Entities</p>
         </div>
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-4 shadow-sm text-center">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-4 shadow-sm text-center">
           <p className="text-2xl font-black text-slate-900">{nodes.length}</p>
           <p className="text-[10px] font-bold uppercase text-slate-400">Graph Nodes</p>
         </div>
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-4 shadow-sm text-center">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-4 shadow-sm text-center">
           <p className="text-2xl font-black text-slate-900">{edges.length}</p>
           <p className="text-[10px] font-bold uppercase text-slate-400">Graph Edges</p>
         </div>
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-4 shadow-sm text-center">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-4 shadow-sm text-center">
           <p className="text-2xl font-black text-slate-900">{new Set(catalogItems.map((i) => i.type)).size || new Set(nodes.map((n) => n.data?.type)).size}</p>
           <p className="text-[10px] font-bold uppercase text-slate-400">Types</p>
         </div>
-        <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-4 shadow-sm text-center">
+        <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white p-4 shadow-sm text-center">
           <p className="text-2xl font-black text-slate-900">{new Set(catalogItems.map((i) => i.country).filter(Boolean)).size || new Set(nodes.map((n) => n.data?.country).filter(Boolean)).size}</p>
           <p className="text-[10px] font-bold uppercase text-slate-400">Countries</p>
         </div>
@@ -370,24 +370,24 @@ function DataManagementPage() {
 
       {/* Tab bar + search + type filter */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-1 rounded-xl border border-[#a390f9]/10 bg-white p-1">
+        <div className="flex items-center gap-1 rounded-xl border border-[#b1b2ff]/10 bg-white p-1">
           <button
             type="button"
-            className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${activeTab === "catalog" ? "bg-[#a390f9] text-white" : "text-slate-500 hover:text-slate-700"}`}
+            className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${activeTab === "catalog" ? "bg-[#b1b2ff] text-white" : "text-slate-500 hover:text-slate-700"}`}
             onClick={() => setActiveTab("catalog")}
           >
             Catalog ({catalogTotal})
           </button>
           <button
             type="button"
-            className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${activeTab === "nodes" ? "bg-[#a390f9] text-white" : "text-slate-500 hover:text-slate-700"}`}
+            className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${activeTab === "nodes" ? "bg-[#b1b2ff] text-white" : "text-slate-500 hover:text-slate-700"}`}
             onClick={() => setActiveTab("nodes")}
           >
             Nodes ({nodes.length})
           </button>
           <button
             type="button"
-            className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${activeTab === "edges" ? "bg-[#a390f9] text-white" : "text-slate-500 hover:text-slate-700"}`}
+            className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${activeTab === "edges" ? "bg-[#b1b2ff] text-white" : "text-slate-500 hover:text-slate-700"}`}
             onClick={() => setActiveTab("edges")}
           >
             Edges ({edges.length})
@@ -399,7 +399,7 @@ function DataManagementPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="rounded-xl border border-[#a390f9]/10 bg-white py-2 px-3 text-xs font-medium focus:border-[#a390f9] focus:ring-1 focus:ring-[#a390f9]"
+              className="rounded-xl border border-[#b1b2ff]/10 bg-white py-2 px-3 text-xs font-medium focus:border-[#b1b2ff] focus:ring-1 focus:ring-[#b1b2ff]"
             >
               <option value="">All Types</option>
               {NODE_TYPES.map((t) => (
@@ -414,14 +414,14 @@ function DataManagementPage() {
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="rounded-xl border border-[#a390f9]/10 bg-white py-2 pl-10 pr-4 text-sm focus:border-[#a390f9] focus:ring-1 focus:ring-[#a390f9]"
+              className="rounded-xl border border-[#b1b2ff]/10 bg-white py-2 pl-10 pr-4 text-sm focus:border-[#b1b2ff] focus:ring-1 focus:ring-[#b1b2ff]"
             />
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="rounded-2xl border border-[#a390f9]/10 bg-white shadow-sm">
+      <div className="rounded-2xl border border-[#b1b2ff]/10 bg-white shadow-sm">
         {/* ─── Catalog Tab ─────────────────────────────────────────────────── */}
         {activeTab === "catalog" && (
           <div>
@@ -431,7 +431,7 @@ function DataManagementPage() {
                 <p className="text-sm text-slate-400">No catalog entities yet.</p>
                 <button
                   type="button"
-                  className="mt-2 rounded-xl bg-[#a390f9] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#8f79f7]"
+                  className="mt-2 rounded-xl bg-[#b1b2ff] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#9798f0]"
                   onClick={handleSeedCatalog}
                 >
                   Seed Default Catalog
@@ -452,7 +452,7 @@ function DataManagementPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="truncate text-sm font-bold text-slate-900">{item.name}</p>
-                          <span className="rounded bg-[#a390f9]/10 px-2 py-0.5 text-[10px] font-medium text-[#6f59d9]">{meta.title}</span>
+                          <span className="rounded bg-[#b1b2ff]/10 px-2 py-0.5 text-[10px] font-medium text-[#6d6fd8]">{meta.title}</span>
                         </div>
 
                         {/* Badges row */}
@@ -500,7 +500,7 @@ function DataManagementPage() {
                       <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                         <button
                           type="button"
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-[#a390f9]/10 hover:text-[#6f59d9]"
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-[#b1b2ff]/10 hover:text-[#6d6fd8]"
                           onClick={() => openEditForm(item)}
                           title="Edit"
                         >
@@ -543,7 +543,7 @@ function DataManagementPage() {
                   <tr key={node.id} className="text-slate-700 transition-colors hover:bg-slate-50/50">
                     <td className="py-3 pr-4 font-medium">{node.data?.name}</td>
                     <td className="py-3 pr-4">
-                      <span className="rounded bg-[#a390f9]/10 px-2 py-0.5 text-[10px] font-medium text-[#6f59d9]">{node.data?.type}</span>
+                      <span className="rounded bg-[#b1b2ff]/10 px-2 py-0.5 text-[10px] font-medium text-[#6d6fd8]">{node.data?.type}</span>
                     </td>
                     <td className="py-3 pr-4">{node.data?.country || "—"}</td>
                     <td className="py-3 pr-4 text-xs font-bold">{node.data?.risk_score}%</td>
@@ -593,7 +593,7 @@ function DataManagementPage() {
                       <td className="py-3 pr-4 text-xs font-medium">{sourceNode?.data?.name || edge.source}</td>
                       <td className="py-3 pr-4 text-xs font-medium">{targetNode?.data?.name || edge.target}</td>
                       <td className="py-3 pr-4">
-                        <span className="rounded bg-[#a390f9]/10 px-2 py-0.5 text-[10px] font-bold text-[#6f59d9]">{edge.label || "—"}</span>
+                        <span className="rounded bg-[#b1b2ff]/10 px-2 py-0.5 text-[10px] font-bold text-[#6d6fd8]">{edge.label || "—"}</span>
                       </td>
                       <td className="py-3">
                         <button type="button" className="rounded-lg p-1 text-red-400 hover:bg-red-50 hover:text-red-600" onClick={() => handleDeleteEdge(edge.id)} title="Delete edge">
@@ -615,9 +615,9 @@ function DataManagementPage() {
       {/* ── Edit / Create Modal ────────────────────────────────────────────── */}
       {editingItem !== null && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={closeForm}>
-          <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl border border-[#a390f9]/20 bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl border border-[#b1b2ff]/20 bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
             {/* Modal header */}
-            <div className="flex items-center justify-between border-b border-[#a390f9]/10 px-6 py-4">
+            <div className="flex items-center justify-between border-b border-[#b1b2ff]/10 px-6 py-4">
               <h2 className="text-base font-bold text-slate-900">{editingItem.catalogId ? "Edit Entity" : "Create New Entity"}</h2>
               <button type="button" className="material-symbols-outlined text-slate-400 hover:text-slate-600" onClick={closeForm}>close</button>
             </div>
@@ -631,7 +631,7 @@ function DataManagementPage() {
 
                     {field.type === "select" ? (
                       <select
-                        className="w-full rounded-xl border border-[#a390f9]/10 bg-[#a390f9]/5 px-3 py-2.5 text-sm font-medium focus:border-[#a390f9] focus:ring-1 focus:ring-[#a390f9]"
+                        className="w-full rounded-xl border border-[#b1b2ff]/10 bg-[#b1b2ff]/5 px-3 py-2.5 text-sm font-medium focus:border-[#b1b2ff] focus:ring-1 focus:ring-[#b1b2ff]"
                         value={formState[field.key] ?? ""}
                         onChange={(e) => handleFormChange(field.key, e.target.value, "text")}
                         required={field.required}
@@ -645,7 +645,7 @@ function DataManagementPage() {
                       <div className="flex items-center gap-2 pt-1">
                         <input
                           type="checkbox"
-                          className="h-5 w-5 rounded border-[#a390f9]/20 text-[#a390f9] focus:ring-[#a390f9]"
+                          className="h-5 w-5 rounded border-[#b1b2ff]/20 text-[#b1b2ff] focus:ring-[#b1b2ff]"
                           checked={!!formState[field.key]}
                           onChange={(e) => handleFormChange(field.key, e.target.checked, "checkbox")}
                         />
@@ -653,7 +653,7 @@ function DataManagementPage() {
                       </div>
                     ) : (
                       <input
-                        className="w-full rounded-xl border border-[#a390f9]/10 bg-[#a390f9]/5 px-3 py-2.5 text-sm font-medium focus:border-[#a390f9] focus:ring-1 focus:ring-[#a390f9]"
+                        className="w-full rounded-xl border border-[#b1b2ff]/10 bg-[#b1b2ff]/5 px-3 py-2.5 text-sm font-medium focus:border-[#b1b2ff] focus:ring-1 focus:ring-[#b1b2ff]"
                         type={field.type}
                         value={formState[field.key] ?? ""}
                         onChange={(e) => handleFormChange(field.key, e.target.value, field.type)}
@@ -671,7 +671,7 @@ function DataManagementPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-xl bg-[#a390f9] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#8f79f7] disabled:opacity-60"
+                  className="rounded-xl bg-[#b1b2ff] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#9798f0] disabled:opacity-60"
                 >
                   {saving ? "Saving…" : editingItem.catalogId ? "Update Entity" : "Create Entity"}
                 </button>
