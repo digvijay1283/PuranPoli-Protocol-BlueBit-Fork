@@ -13,12 +13,14 @@ const {
   computeRisks,
   nodeDisruptions,
   nodeIntelligence,
+  getPharmaSchemaAnalysis,
 } = require("../controllers/graphController");
 
 const router = express.Router();
 
 router.get("/graph", getGraph);
 router.get("/nodes/catalog", getNodeCatalog);
+router.get("/nodes/catalog/schema", getPharmaSchemaAnalysis);
 router.post("/graph/demo", loadDemo);
 router.post("/graph/reset", resetGraph);
 router.post("/graph/compute-risks", computeRisks);

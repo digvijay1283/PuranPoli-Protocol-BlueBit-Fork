@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import collections
 import os
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 APP_DIR = Path(__file__).resolve().parent
 ML_DIR = APP_DIR.parent
@@ -309,3 +311,356 @@ def analytics_overview() -> Dict[str, object]:
         "supplier_reliability": supplier_reliability(limit=5),
         "demand_supply_mismatch": demand_supply_mismatch(limit=5),
     }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Graph-topology-aware inference  (POST /analytics/predict-graph)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class GraphNodePayload(BaseModel):
+    id: str
+    data: Dict[str, Any] = {}
+    type: str = "supplyNode"
+
+
+class GraphEdgePayload(BaseModel):
+    id: str = ""
+    source: str = ""
+    target: str = ""
+    data: Dict[str, Any] = {}
+
+
+class GraphPredictRequest(BaseModel):
+    nodes: List[GraphNodePayload] = []
+    edges: List[GraphEdgePayload] = []
+
+
+def _find_articulation_points(
+    node_ids: List[str], edge_list: List[Tuple[str, str]]
+) -> Set[str]:
+    """
+    Tarjan's DFS-based articulation point algorithm on the *undirected* version
+    of the supply chain.  A node is an articulation point (structural SPOF) if
+    removing it disconnects the graph — e.g. a warehouse that is the only link
+    between three manufacturers and all downstream nodes.
+    """
+    if len(node_ids) < 2:
+        return set()
+
+    node_id_set = set(node_ids)
+
+    # Build undirected adjacency
+    adj: Dict[str, List[str]] = collections.defaultdict(list)
+    for src, tgt in edge_list:
+        if src in node_id_set and tgt in node_id_set:
+            adj[src].append(tgt)
+            adj[tgt].append(src)
+
+    disc: Dict[str, int] = {}
+    low: Dict[str, int] = {}
+    parent: Dict[str, Optional[str]] = {}
+    ap_set: Set[str] = set()
+    timer = [0]
+
+    def dfs(u: str) -> None:
+        disc[u] = low[u] = timer[0]
+        timer[0] += 1
+        child_count = 0
+
+        for v in adj[u]:
+            if v not in disc:
+                child_count += 1
+                parent[v] = u
+                dfs(v)
+                low[u] = min(low[u], low[v])
+                # Root with 2+ children → AP
+                if parent.get(u) is None and child_count > 1:
+                    ap_set.add(u)
+                # Non-root: no back-edge from subtree can bypass u → AP
+                if parent.get(u) is not None and low[v] >= disc[u]:
+                    ap_set.add(u)
+            elif v != parent.get(u):
+                low[u] = min(low[u], disc[v])
+
+    for nid in node_ids:
+        if nid not in disc:
+            parent[nid] = None
+            dfs(nid)
+
+    return ap_set
+
+
+def _compute_graph_predictions(
+    nodes: List[Dict[str, Any]],
+    edges: List[Dict[str, Any]],
+    df: Optional[pd.DataFrame] = None,
+) -> Dict[str, Any]:
+    """
+    Compute topology-aware, context-sensitive risk predictions for every node
+    in the user's supply chain graph.
+
+    Risk formula
+    ─────────────
+      contextual_risk = base_risk (from node data / CSV lookup)
+                      + structural_bonus
+        structural_bonus:
+          • +25  if the node is an articulation point
+                 (removing it disconnects the chain)
+          • +min(in_degree × 8, 30)  if multiple upstream nodes feed into it
+                 (bottleneck / single-funnelling risk)
+          • +10  if it is a sole-leaf supplier (in=0, out=1)
+
+    This means a warehouse with 3 manufacturers flowing through it and no
+    alternative path will be flagged as a high-risk SPOF automatically.
+    """
+    if not nodes:
+        return {
+            "summary": {"total_nodes": 0, "total_edges": 0, "avg_predicted_risk": 0},
+            "vulnerabilities": [],
+            "bottlenecks": [],
+            "node_predictions": [],
+            "geographic_risk": {
+                "hhi_country": 0,
+                "concentration_level": "low",
+                "countries": [],
+            },
+            "articulation_points": [],
+        }
+
+    # Build degree maps
+    in_degree: Dict[str, int] = collections.defaultdict(int)
+    out_degree: Dict[str, int] = collections.defaultdict(int)
+    edge_list: List[Tuple[str, str]] = []
+
+    for e in edges:
+        src = e.get("source") or e.get("data", {}).get("sourceId", "")
+        tgt = e.get("target") or e.get("data", {}).get("targetId", "")
+        if src and tgt:
+            in_degree[tgt] += 1
+            out_degree[src] += 1
+            edge_list.append((src, tgt))
+
+    node_ids = [n["id"] for n in nodes]
+    n_total = max(len(node_ids), 1)
+
+    # Structural SPOF detection via Tarjan's algorithm
+    ap_set = _find_articulation_points(node_ids, edge_list)
+
+    # Build historical CSV lookup keyed by supplier_id (for contextual enrichment)
+    csv_lookup: Dict[str, Any] = {}
+    if df is not None:
+        for _, row in df.iterrows():
+            sid = str(row.get("supplier_id", ""))
+            if sid:
+                csv_lookup[sid] = row
+
+    node_predictions: List[Dict[str, Any]] = []
+
+    for node in nodes:
+        node_id = node["id"]
+        data = node.get("data", {})
+
+        in_deg = in_degree[node_id]
+        out_deg = out_degree[node_id]
+        total_deg = in_deg + out_deg
+        centrality = total_deg / (n_total - 1) if n_total > 1 else 0.0
+
+        is_ap = node_id in ap_set
+        # Bottleneck = multiple inputs AND has at least one output
+        is_bottleneck = in_deg >= 2 and out_deg >= 1
+
+        # Base risk: prefer value stored on the node (set from catalog / manual entry)
+        base_risk = float(data.get("risk_score") or 50)
+
+        # Try to enrich with live CSV historical data
+        csv_row = None
+        catalog_id = str(data.get("catalog_id") or data.get("supplier_id") or "")
+        if catalog_id and catalog_id in csv_lookup:
+            csv_row = csv_lookup[catalog_id]
+            base_risk = float(csv_row.get("composite_risk_score", base_risk))
+
+        # ── Structural bonus ────────────────────────────────────────────────
+        structural_bonus = 0.0
+        if is_ap:
+            structural_bonus += 25  # removing this disconnects the chain
+        if in_deg >= 2:
+            structural_bonus += min(in_deg * 8, 30)  # funnelling load
+        if in_deg == 0 and out_deg == 1:
+            structural_bonus += 10  # sole-leaf supplier
+
+        contextual_risk = min(round(base_risk + structural_bonus, 2), 100.0)
+
+        # Bottleneck score (0–100): in-degree load + centrality + AP status
+        bottleneck_score = min(
+            round((in_deg * 20) + (centrality * 50) + (30.0 if is_ap else 0.0), 2),
+            100.0,
+        )
+
+        # Reliability: from node data → CSV fallback → infer from risk
+        reliability = float(data.get("reliability_score") or 0)
+        if reliability == 0 and csv_row is not None:
+            reliability = float(csv_row.get("reliability_score", 0))
+        if reliability == 0:
+            reliability = round(max(0.0, 100.0 - contextual_risk), 2)
+
+        # Mismatch index: capacity bottleneck + risk pressure + degree load
+        capacity_util = float(data.get("capacity_utilization") or 0.7)
+        mismatch_index = min(
+            round((capacity_util * 35) + (contextual_risk * 0.35) + (in_deg * 7), 2),
+            100.0,
+        )
+
+        dep_pct = float(data.get("dependency_percentage") or 0)
+        compliance_raw = str(data.get("compliance_status") or "Compliant").lower()
+        is_non_compliant = compliance_raw in (
+            "non-compliant",
+            "false",
+            "0",
+            "violation",
+        )
+
+        is_vulnerable = (
+            contextual_risk >= 70
+            or is_ap
+            or in_deg >= 3
+            or dep_pct >= 75
+            or is_non_compliant
+        )
+
+        country = (data.get("country") or "Unknown").strip() or "Unknown"
+
+        spof_reasons: List[str] = []
+        if is_ap:
+            spof_reasons.append("structural articulation point")
+        if in_deg >= 3:
+            spof_reasons.append(f"high in-degree ({in_deg} dependencies)")
+        if is_bottleneck:
+            spof_reasons.append("funnels multiple upstream flows")
+        if dep_pct >= 75:
+            spof_reasons.append(f"high dependency ({dep_pct:.0f}%)")
+
+        node_predictions.append(
+            {
+                "node_id": node_id,
+                "name": data.get("name") or node_id,
+                "type": data.get("type") or "Unknown",
+                "country": country,
+                "predicted_risk": contextual_risk,
+                "bottleneck_score": bottleneck_score,
+                "mismatch_index": mismatch_index,
+                "centrality": round(centrality, 3),
+                "in_degree": in_deg,
+                "out_degree": out_deg,
+                "is_articulation_point": is_ap,
+                "is_bottleneck": is_bottleneck,
+                "is_vulnerable": is_vulnerable,
+                "dependency": dep_pct,
+                "reliability": round(reliability, 2),
+                "spof_reasons": spof_reasons,
+            }
+        )
+
+    # Sort by predicted risk descending
+    node_predictions.sort(key=lambda x: -x["predicted_risk"])
+
+    vulnerabilities = [p for p in node_predictions if p["is_vulnerable"]]
+    bottlenecks_list = sorted(
+        [
+            p
+            for p in node_predictions
+            if p["is_bottleneck"] or p["is_articulation_point"]
+        ],
+        key=lambda x: -x["bottleneck_score"],
+    )
+    # Lowest-reliability nodes (ascending)
+    reliability_ranking = sorted(node_predictions, key=lambda x: x["reliability"])
+    # Highest mismatch nodes
+    mismatch_ranking = sorted(node_predictions, key=lambda x: -x["mismatch_index"])
+
+    # Geographic risk — derived ONLY from the actual nodes in this chain
+    country_counts: collections.Counter = collections.Counter(
+        p["country"]
+        for p in node_predictions
+        if p["country"] not in ("Unknown", "", None)
+    )
+    total_in_chain = sum(country_counts.values())
+    if total_in_chain > 0:
+        shares = {c: v / total_in_chain for c, v in country_counts.items()}
+        hhi = round(sum(s**2 for s in shares.values()) * 10000, 2)
+        countries = [
+            {
+                "country": c,
+                "count": cnt,
+                "share_pct": round(cnt / total_in_chain * 100, 2),
+            }
+            for c, cnt in sorted(country_counts.items(), key=lambda x: -x[1])
+        ]
+        geo_risk = {
+            "hhi_country": hhi,
+            "concentration_level": (
+                "high" if hhi >= 2500 else "moderate" if hhi >= 1500 else "low"
+            ),
+            "countries": countries,
+        }
+    else:
+        geo_risk = {"hhi_country": 0, "concentration_level": "low", "countries": []}
+
+    risks = [p["predicted_risk"] for p in node_predictions]
+    avg_risk = round(sum(risks) / len(risks), 2) if risks else 0.0
+
+    return {
+        "summary": {
+            "total_nodes": len(nodes),
+            "total_edges": len(edges),
+            "avg_predicted_risk": avg_risk,
+            "max_predicted_risk": round(max(risks), 2) if risks else 0.0,
+            "single_point_failures": len(
+                [p for p in node_predictions if p["is_articulation_point"]]
+            ),
+            "bottleneck_count": len(bottlenecks_list),
+            "vulnerability_count": len(vulnerabilities),
+            "critical_nodes": len(
+                [p for p in node_predictions if p["predicted_risk"] >= 80]
+            ),
+        },
+        "vulnerabilities": vulnerabilities,
+        "bottlenecks": bottlenecks_list,
+        "reliability_ranking": reliability_ranking,
+        "mismatch_ranking": mismatch_ranking,
+        "node_predictions": node_predictions,
+        "geographic_risk": geo_risk,
+        "articulation_points": list(ap_set),
+    }
+
+
+@app.post("/analytics/predict-graph")
+def predict_graph(req: GraphPredictRequest) -> Dict[str, Any]:
+    """
+    Topology-aware supply chain risk inference.
+
+    Accepts the nodes and edges of a workspace graph and returns per-node
+    predictions that account for:
+      • Historical risk from the pharma CSV dataset (when supplier_id matches)
+      • Graph-structural risk: articulation points, in-degree load, centrality
+      • SPOF detection: nodes whose removal disconnects the graph
+      • Bottleneck detection: nodes funnelling ≥2 upstream flows
+      • Geographic concentration calculated from actual chain nodes
+      • Demand-supply mismatch calculated from actual chain nodes
+    """
+    nodes = [{"id": n.id, "data": n.data} for n in req.nodes]
+    edges = [
+        {
+            "source": e.source or e.data.get("sourceId", ""),
+            "target": e.target or e.data.get("targetId", ""),
+        }
+        for e in req.edges
+    ]
+
+    if not nodes:
+        raise HTTPException(status_code=400, detail="Payload contains no nodes.")
+
+    df = state.get("df")  # May be None during tests; algorithm handles it gracefully
+    predictions = _compute_graph_predictions(nodes, edges, df)
+
+    return {"model": "graph_topology_v2", "predictions": predictions}
