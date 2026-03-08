@@ -7,6 +7,7 @@ const morgan = require("morgan");
 const helmet = require("helmet");
 
 const connectDB = require("./src/config/db");
+const { connectNeo4j } = require("./src/config/neo4j");
 const errorHandler = require("./src/middlewares/errorHandler");
 const notFound = require("./src/middlewares/notFound");
 const healthRoutes = require("./src/routes/healthRoutes");
@@ -36,6 +37,7 @@ const PORT = process.env.PORT || 5000;
 
 const start = async () => {
   await connectDB();
+  await connectNeo4j();
   app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
   });
