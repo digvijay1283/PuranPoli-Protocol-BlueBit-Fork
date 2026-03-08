@@ -12,6 +12,10 @@ const errorHandler = require("./src/middlewares/errorHandler");
 const notFound = require("./src/middlewares/notFound");
 const healthRoutes = require("./src/routes/healthRoutes");
 const graphRoutes = require("./src/routes/graphRoutes");
+const disruptionRoutes = require("./src/external-intelligence/api/disruptionRoutes");
+const locationRoutes = require("./src/routes/locationRoutes");
+const MonitoredLocation = require("./src/models/monitoredLocation");
+const { startScheduler } = require("./src/external-intelligence/scheduler/ingestionScheduler");
 
 const app = express();
 
@@ -29,6 +33,8 @@ if (process.env.NODE_ENV === "development") {
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use("/api/v1/health", healthRoutes);
 app.use("/api/v1", graphRoutes);
+app.use("/api/v1/disruptions", disruptionRoutes);
+app.use("/api/v1/locations", locationRoutes);
 
 // ── Error Handling ────────────────────────────────────────────────────────────
 app.use(notFound);
@@ -39,7 +45,9 @@ const PORT = process.env.PORT || 5000;
 
 const start = async () => {
   await connectDB();
+  await MonitoredLocation.seedDefaults();
   await connectNeo4j();
+  startScheduler();
   app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
   });
