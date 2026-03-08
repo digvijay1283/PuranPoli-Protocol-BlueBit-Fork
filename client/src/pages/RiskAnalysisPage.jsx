@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { graphApi } from "../services/api";
+import { analyticsApi, graphApi } from "../services/api";
 import { NODE_META } from "../constants/nodeMeta";
 
 function RiskBadge({ score }) {
@@ -41,6 +41,8 @@ function RiskAnalysisPage() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsError, setAnalyticsError] = useState("");
   const [sortBy, setSortBy] = useState("risk_score");
   const [sortDir, setSortDir] = useState("desc");
   const [filterType, setFilterType] = useState("all");
@@ -48,11 +50,18 @@ function RiskAnalysisPage() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await graphApi.getGraph();
-        setNodes(data.nodes || []);
-        setEdges(data.edges || []);
+        const [graphData, analyticsData] = await Promise.all([
+          graphApi.getGraph(),
+          analyticsApi.getOverview(),
+        ]);
+        setNodes(graphData.nodes || []);
+        setEdges(graphData.edges || []);
+        setAnalytics(analyticsData);
       } catch (error) {
-        console.error("Failed to load graph", error);
+        console.error("Failed to load risk analysis data", error);
+        setAnalyticsError(
+          "Analytics service is unreachable. Start FastAPI service on port 8001."
+        );
       } finally {
         setLoading(false);
       }
@@ -112,6 +121,11 @@ function RiskAnalysisPage() {
     return <span className="material-symbols-outlined text-[14px] text-[#a390f9]">{sortDir === "desc" ? "expand_more" : "expand_less"}</span>;
   };
 
+  const spof = analytics?.single_point_of_failure;
+  const geo = analytics?.geographic_concentration;
+  const reliability = analytics?.supplier_reliability;
+  const mismatch = analytics?.demand_supply_mismatch;
+
   return (
     <div className="flex flex-col gap-8 p-8">
       {/* Header */}
@@ -154,6 +168,148 @@ function RiskAnalysisPage() {
           <p className="text-[10px] text-slate-400">supply chain links</p>
         </div>
       </div>
+
+      {analyticsError && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+          {analyticsError}
+        </div>
+      )}
+
+      {analytics && (
+        <>
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
+            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+              <p className="text-xs text-slate-500">Single Point Failures</p>
+              <p className="text-2xl font-black text-slate-900">
+                {spof?.single_point_failures ?? 0}
+              </p>
+              <p className="text-[11px] text-slate-400">
+                {spof?.spof_rate_pct ?? 0}% of suppliers
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+              <p className="text-xs text-slate-500">Geographic Concentration (HHI)</p>
+              <p className="text-2xl font-black text-slate-900">
+                {geo?.hhi_country ?? 0}
+              </p>
+              <p className="text-[11px] uppercase tracking-wide text-slate-400">
+                {geo?.concentration_level ?? "unknown"}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+              <p className="text-xs text-slate-500">Avg Supplier Reliability</p>
+              <p className="text-2xl font-black text-slate-900">
+                {reliability?.average_reliability ?? 0}
+              </p>
+              <p className="text-[11px] text-slate-400">out of 100</p>
+            </div>
+
+            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-5 shadow-sm">
+              <p className="text-xs text-slate-500">Critical Demand-Supply Mismatch</p>
+              <p className="text-2xl font-black text-slate-900">
+                {mismatch?.critical_mismatch_suppliers ?? 0}
+              </p>
+              <p className="text-[11px] text-slate-400">
+                Avg index: {mismatch?.avg_mismatch_index ?? 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Single Point Of Failure Identification
+              </h3>
+              <div className="space-y-2">
+                {(spof?.top_exposed_suppliers || []).slice(0, 5).map((item) => (
+                  <div
+                    key={item.supplier_id}
+                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700">{item.supplier_id}</p>
+                      <p className="text-[11px] text-slate-400">
+                        {item.country} • dep {Math.round((item.dependency_pct || 0) * 100)}%
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-red-600">
+                      {item.spof_risk_index}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Geographic Concentration Risk
+              </h3>
+              <div className="space-y-2">
+                {(geo?.top_countries || []).slice(0, 5).map((item) => (
+                  <div
+                    key={item.country}
+                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700">{item.country}</p>
+                      <p className="text-[11px] text-slate-400">{item.suppliers} suppliers</p>
+                    </div>
+                    <span className="text-xs font-bold text-slate-600">{item.share_pct}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Supplier Reliability Scoring
+              </h3>
+              <div className="space-y-2">
+                {(reliability?.lowest_reliability_suppliers || []).slice(0, 5).map((item) => (
+                  <div
+                    key={item.supplier_id}
+                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700">{item.supplier_id}</p>
+                      <p className="text-[11px] text-slate-400">{item.country} • tier {item.tier}</p>
+                    </div>
+                    <span className="text-xs font-bold text-orange-600">
+                      {item.reliability_score}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+                Demand-Supply Mismatch Detection
+              </h3>
+              <div className="space-y-2">
+                {(mismatch?.top_mismatches || []).slice(0, 5).map((item) => (
+                  <div
+                    key={item.supplier_id}
+                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700">{item.supplier_id}</p>
+                      <p className="text-[11px] text-slate-400">
+                        util {Math.round((item.capacity_utilization_pct || 0) * 100)}%
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-red-600">
+                      {item.mismatch_index}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Risk by node type */}
       <div className="rounded-2xl border border-[#a390f9]/10 bg-white p-6 shadow-sm">

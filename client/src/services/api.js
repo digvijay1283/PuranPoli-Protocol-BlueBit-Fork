@@ -1,9 +1,15 @@
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+const ANALYTICS_API_BASE_URL =
+  import.meta.env.VITE_ANALYTICS_API_URL || "http://localhost:8001";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+});
+
+const analyticsApiClient = axios.create({
+  baseURL: ANALYTICS_API_BASE_URL,
 });
 
 // ── Workspace API ───────────────────────────────────────────────────────────
@@ -65,6 +71,41 @@ export const graphApi = {
   resetGraph: async (workspaceId) => {
     const params = workspaceId ? { workspace: workspaceId } : {};
     const { data } = await api.post("/graph/reset", null, { params });
+    return data;
+  },
+};
+
+export const analyticsApi = {
+  getOverview: async () => {
+    const { data } = await analyticsApiClient.get("/analytics/overview");
+    return data;
+  },
+  getSinglePointOfFailure: async (limit = 20) => {
+    const { data } = await analyticsApiClient.get(
+      "/analytics/single-point-of-failure",
+      { params: { limit } }
+    );
+    return data;
+  },
+  getGeographicConcentration: async (top_n = 10) => {
+    const { data } = await analyticsApiClient.get(
+      "/analytics/geographic-concentration",
+      { params: { top_n } }
+    );
+    return data;
+  },
+  getSupplierReliability: async (limit = 20) => {
+    const { data } = await analyticsApiClient.get(
+      "/analytics/supplier-reliability",
+      { params: { limit } }
+    );
+    return data;
+  },
+  getDemandSupplyMismatch: async (limit = 20) => {
+    const { data } = await analyticsApiClient.get(
+      "/analytics/demand-supply-mismatch",
+      { params: { limit } }
+    );
     return data;
   },
 };
