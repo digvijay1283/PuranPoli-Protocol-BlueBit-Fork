@@ -1,21 +1,78 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { workspaceApi } from "../services/api";
+
+const NETWORK_CLIPBOARD_KEY = "supplier_network_clipboard";
+
+const readNetworkClipboard = () => {
+  try {
+    const raw = localStorage.getItem(NETWORK_CLIPBOARD_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.workspaceId || !parsed?.workspaceName) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
 
 export default function SupplierDashboard() {
   const navigate = useNavigate();
   const { workspaces, setWorkspaces } = useOutletContext();
   const [loading, setLoading] = useState(!workspaces?.length);
+  const [pastingWorkspaceId, setPastingWorkspaceId] = useState(null);
+  const [networkClipboard, setNetworkClipboard] = useState(readNetworkClipboard);
+
+  const refreshWorkspaces = useCallback(async () => {
+    const data = await workspaceApi.listMine();
+    setWorkspaces(data.workspaces ?? data ?? []);
+  }, [setWorkspaces]);
 
   useEffect(() => {
-    workspaceApi
-      .listMine()
-      .then((data) => {
-        setWorkspaces(data.workspaces ?? data ?? []);
-      })
+    refreshWorkspaces()
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [setWorkspaces]);
+  }, [refreshWorkspaces]);
+
+  const saveClipboard = (nextClipboard) => {
+    setNetworkClipboard(nextClipboard);
+    if (!nextClipboard) {
+      localStorage.removeItem(NETWORK_CLIPBOARD_KEY);
+      return;
+    }
+    localStorage.setItem(NETWORK_CLIPBOARD_KEY, JSON.stringify(nextClipboard));
+  };
+
+  const handleCopyNetwork = (workspace) => {
+    saveClipboard({
+      workspaceId: workspace._id,
+      workspaceName: workspace.name,
+      copiedAt: Date.now(),
+    });
+  };
+
+  const handlePasteNetwork = async (targetWorkspace) => {
+    if (!networkClipboard?.workspaceId || !targetWorkspace?._id) return;
+
+    try {
+      setPastingWorkspaceId(targetWorkspace._id);
+      const result = await workspaceApi.pasteNetwork(targetWorkspace._id, {
+        sourceWorkspaceId: networkClipboard.workspaceId,
+      });
+
+      await refreshWorkspaces();
+
+      alert(
+        `Network pasted successfully: ${result.copiedNodeCount ?? 0} nodes, ${
+          result.copiedEdgeCount ?? 0
+        } edges.`
+      );
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to paste network");
+    } finally {
+      setPastingWorkspaceId(null);
+    }
+  };
 
   const handleCreate = async () => {
     const name = prompt("New workspace name:");
@@ -61,6 +118,24 @@ export default function SupplierDashboard() {
           Create New Workspace
         </button>
       </div>
+
+      {networkClipboard && (
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#b1b2ff]/30 bg-[#b1b2ff]/10 px-4 py-3">
+          <div className="flex items-center gap-2 text-sm text-[#4f52c9]">
+            <span className="material-symbols-outlined text-[18px]">content_copy</span>
+            <span>
+              Copied network: <span className="font-semibold">{networkClipboard.workspaceName}</span>
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => saveClipboard(null)}
+            className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100"
+          >
+            Clear
+          </button>
+        </div>
+      )}
 
       {/* Empty State */}
       {workspaces.length === 0 && (
@@ -146,7 +221,7 @@ export default function SupplierDashboard() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -170,6 +245,33 @@ export default function SupplierDashboard() {
                   publish
                 </span>
                 Publish
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopyNetwork(ws);
+                }}
+                className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  content_copy
+                </span>
+                Copy Network
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePasteNetwork(ws);
+                }}
+                disabled={!networkClipboard || pastingWorkspaceId === ws._id}
+                className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  content_paste
+                </span>
+                {pastingWorkspaceId === ws._id ? "Pasting..." : "Paste Here"}
               </button>
             </div>
           </div>

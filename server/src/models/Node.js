@@ -149,6 +149,11 @@ const nodeSchema = new mongoose.Schema(
         default: 0,
       },
     },
+    linkedWorkspace: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Workspace",
+      default: null,
+    },
     // ── Import tracking ─────────────────────────────────────
     imported: {
       type: Boolean,

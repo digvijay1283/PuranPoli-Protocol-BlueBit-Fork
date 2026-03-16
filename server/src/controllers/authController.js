@@ -1,6 +1,7 @@
 const { StatusCodes } = require("http-status-codes");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Supplier = require("../models/Supplier");
 
 const ensureJwtSecret = () => {
   if (!process.env.JWT_SECRET) {
@@ -55,6 +56,49 @@ const register = async (req, res) => {
     name: normalizedName,
     companyName: normalizedCompanyName,
   });
+
+  const supplierId = `SUP-USER-${String(user._id).slice(-8).toUpperCase()}`;
+  await Supplier.findOneAndUpdate(
+    { supplier_id: supplierId },
+    {
+      $set: {
+        supplier_id: supplierId,
+        name: normalizedCompanyName,
+        tier: 1,
+        country: "",
+        region: "",
+        production_capacity: 0,
+        capacity_utilization_pct: 0,
+        gmp_status: false,
+        fda_approved: false,
+        cold_chain_capable: false,
+        avg_lead_time_days: 0,
+        lead_time_volatility_days: 0,
+        historical_delay_frequency_pct: 0,
+        batch_cycle_time_days: 0,
+        batch_failure_rate_pct: 0,
+        financial_health_score: 0,
+        upstream_dependency_known: false,
+        dependency_pct: 0,
+        is_sole_source: false,
+        num_approved_alternates: 0,
+        contract_duration_months: 0,
+        geographic_concentration_pct: 0,
+        news_sentiment_score: 0,
+        port_congestion_risk: 0,
+        weather_risk_score: 0,
+        geopolitical_tension_score: 0,
+        active_disruption_signal: false,
+        cold_chain_route_mismatch: false,
+        compliance_violation_flag: false,
+        composite_risk_score: 0,
+        risk_classification: "moderate",
+        imported_from_csv: false,
+      },
+    },
+    { upsert: true, setDefaultsOnInsert: true }
+  );
+
   const token = createToken(user);
 
   res.status(StatusCodes.CREATED).json({

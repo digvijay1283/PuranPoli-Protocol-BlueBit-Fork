@@ -57,6 +57,18 @@ export const workspaceApi = {
     const { data } = await api.patch(`/workspaces/${id}/unpublish`);
     return data;
   },
+  pasteNetwork: async (targetWorkspaceId, payload) => {
+    const { data } = await api.post(`/workspaces/${targetWorkspaceId}/paste-network`, payload);
+    return data;
+  },
+  viewSupplierNetwork: async (targetWorkspaceId, payload) => {
+    const { data } = await api.post(`/workspaces/${targetWorkspaceId}/supplier-network/view`, payload);
+    return data;
+  },
+  collapseSupplierNetwork: async (targetWorkspaceId, payload) => {
+    const { data } = await api.post(`/workspaces/${targetWorkspaceId}/supplier-network/collapse`, payload);
+    return data;
+  },
 };
 
 // ── Graph ───────────────────────────────────────────────────────────────────
@@ -64,6 +76,11 @@ export const graphApi = {
   getGraph: async (workspaceId) => {
     const params = workspaceId ? { workspace: workspaceId } : {};
     const { data } = await api.get("/graph", { params });
+    return data;
+  },
+  getNodeCatalog: async (type) => {
+    const params = type ? { type } : {};
+    const { data } = await api.get("/nodes/catalog", { params });
     return data;
   },
   createNode: async (payload) => {

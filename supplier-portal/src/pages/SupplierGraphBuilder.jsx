@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ReactFlow,
@@ -13,32 +13,66 @@ import "@xyflow/react/dist/style.css";
 
 import { graphApi, workspaceApi } from "../services/api";
 import CustomNode from "../components/CustomNode";
+import NodeCatalogModal from "../components/NodeCatalogModal";
+import { NODE_META } from "../constants/nodeMeta";
+import { useAuth } from "../context/AuthContext";
 
 const nodeTypes = { custom: CustomNode };
 const createNodeId = () => `node_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 const createEdgeId = () => `edge_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-const SUPPLIER_NODE_TYPE = "Tier1Supplier";
-const SUPPLIER_NODE_META = {
-  title: "My Node",
-  subtitle: "Supplier End Point",
-  icon: "person_pin_circle",
-  iconClass: "bg-blue-100 text-blue-600",
-};
+const SUPPLIER_PALETTE = [
+  "Manufacturer",
+  "RawMaterialSource",
+  "Tier1Supplier",
+  "Tier2Supplier",
+  "Tier3Supplier",
+];
 
 export default function SupplierGraphBuilder() {
   const { workspaceId } = useParams();
+  const { user } = useAuth();
   const reactFlowWrapper = useRef(null);
 
   const [workspace, setWorkspace] = useState(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [catalogModal, setCatalogModal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
+  const [networkBusy, setNetworkBusy] = useState(false);
 
   // Editable fields for the selected node
   const [editName, setEditName] = useState("");
   const [editCountry, setEditCountry] = useState("");
+
+  const reloadGraph = useCallback(async () => {
+    const graphData = await graphApi.getGraph(workspaceId);
+    const rawNodes = graphData.nodes ?? [];
+    const rawEdges = graphData.edges ?? [];
+
+    setNodes(
+      rawNodes.map((n) => ({
+        id: n.id,
+        type: "custom",
+        position: n.position ?? { x: Math.random() * 600, y: Math.random() * 400 },
+        data: {
+          ...(n.data || {}),
+          label: n.data?.name || n.id,
+        },
+      }))
+    );
+
+    setEdges(
+      rawEdges.map((e) => ({
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        animated: true,
+        style: { stroke: "#b1b2ff" },
+      }))
+    );
+  }, [workspaceId, setNodes, setEdges]);
 
   // Load workspace and graph
   useEffect(() => {
@@ -46,32 +80,7 @@ export default function SupplierGraphBuilder() {
       try {
         const wsData = await workspaceApi.get(workspaceId);
         setWorkspace(wsData.workspace ?? wsData);
-
-        const graphData = await graphApi.getGraph(workspaceId);
-        const rawNodes = graphData.nodes ?? [];
-        const rawEdges = graphData.edges ?? [];
-
-        setNodes(
-          rawNodes.map((n) => ({
-            id: n.id,
-            type: "custom",
-            position: n.position ?? { x: Math.random() * 600, y: Math.random() * 400 },
-            data: {
-              ...(n.data || {}),
-              label: n.data?.name || n.id,
-            },
-          }))
-        );
-
-        setEdges(
-          rawEdges.map((e) => ({
-            id: e.id,
-            source: e.source,
-            target: e.target,
-            animated: true,
-            style: { stroke: "#b1b2ff" },
-          }))
-        );
+        await reloadGraph();
       } catch {
         // leave empty
       } finally {
@@ -79,7 +88,7 @@ export default function SupplierGraphBuilder() {
       }
     };
     load();
-  }, [workspaceId, setNodes, setEdges]);
+  }, [workspaceId, reloadGraph]);
 
   // On connect two nodes
   const onConnect = useCallback(
@@ -122,29 +131,18 @@ export default function SupplierGraphBuilder() {
     event.dataTransfer.dropEffect = "move";
   }, []);
 
-  const onDrop = useCallback(
-    async (event) => {
-      event.preventDefault();
-      const draggedType = event.dataTransfer.getData("application/reactflow");
-      if (!draggedType || !reactFlowInstance) return;
-
-      const position = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-
-      const type = SUPPLIER_NODE_TYPE;
+  const createNodeFromData = useCallback(
+    async (nodeData, position) => {
       const nodeId = createNodeId();
-      const name = `${SUPPLIER_NODE_META.title} ${nodeId.slice(-4)}`;
 
       try {
         const data = await graphApi.createNode({
           id: nodeId,
-          name,
-          type,
-          workspace: workspaceId,
+          ...nodeData,
           position,
+          workspace: workspaceId,
         });
+
         const n = data.node ?? data ?? {};
         const newNode = {
           id: n.id || nodeId,
@@ -160,7 +158,67 @@ export default function SupplierGraphBuilder() {
         // silent
       }
     },
-    [reactFlowInstance, workspaceId, setNodes]
+    [workspaceId, setNodes]
+  );
+
+  const onDrop = useCallback(
+    async (event) => {
+      event.preventDefault();
+      const draggedType = event.dataTransfer.getData("application/reactflow");
+      if (!draggedType || !reactFlowInstance) return;
+
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      if (draggedType === "Manufacturer") {
+        const ownName =
+          user?.companyName?.trim() ||
+          user?.name?.trim() ||
+          NODE_META.Manufacturer?.title ||
+          "My Node";
+
+        await createNodeFromData(
+          {
+            name: ownName,
+            type: "Manufacturer",
+            country: "",
+            region: "",
+            capacity: 0,
+            inventory: 0,
+            risk_score: 0,
+            lead_time_days: 0,
+            reliability_score: 0,
+            dependency_percentage: 0,
+            compliance_status: "Unknown",
+            gmp_status: "Unknown",
+            fda_approval: "Unknown",
+            cold_chain_capable: false,
+            cost: 0,
+            moq: 0,
+            contract_duration_months: 0,
+            batch_cycle_time_days: 0,
+            financial_health_score: 0,
+          },
+          position
+        );
+        return;
+      }
+
+      setCatalogModal({ nodeType: draggedType, position });
+    },
+    [reactFlowInstance, user, createNodeFromData]
+  );
+
+  const handleCatalogSelect = useCallback(
+    async (nodeData) => {
+      const position = catalogModal?.position || { x: 0, y: 0 };
+
+      await createNodeFromData(nodeData, position);
+      setCatalogModal(null);
+    },
+    [catalogModal, createNodeFromData]
   );
 
   // Node click
@@ -172,6 +230,61 @@ export default function SupplierGraphBuilder() {
     },
     []
   );
+
+  const selectedNetworkExpanded = useMemo(() => {
+    if (!selectedNode?.id || !selectedNode?.data?.linkedWorkspace) {
+      return false;
+    }
+
+    const linkedWorkspace = String(selectedNode.data.linkedWorkspace);
+    const importedNodeIds = new Set(
+      nodes
+        .filter(
+          (node) =>
+            node?.data?.imported &&
+            String(node?.data?.sourceWorkspace || "") === linkedWorkspace
+        )
+        .map((node) => node.id)
+    );
+
+    return edges.some(
+      (edge) => edge.source === selectedNode.id && importedNodeIds.has(edge.target)
+    );
+  }, [selectedNode, nodes, edges]);
+
+  const handleToggleSupplierNetwork = async () => {
+    if (!selectedNode?.data?.linkedWorkspace) return;
+
+    setNetworkBusy(true);
+    try {
+      if (selectedNetworkExpanded) {
+        const result = await workspaceApi.collapseSupplierNetwork(workspaceId, {
+          anchorNodeId: selectedNode.id,
+          sourceWorkspaceId: selectedNode.data.linkedWorkspace,
+        });
+
+        if (!result?.collapsed) {
+          return;
+        }
+      } else {
+        const result = await workspaceApi.viewSupplierNetwork(workspaceId, {
+          anchorNodeId: selectedNode.id,
+          sourceWorkspaceId: selectedNode.data.linkedWorkspace,
+        });
+
+        if (!result?.success) {
+          return;
+        }
+      }
+
+      await reloadGraph();
+      setSelectedNode(null);
+    } catch {
+      // silent
+    } finally {
+      setNetworkBusy(false);
+    }
+  };
 
   // Save node edits
   const handleSaveNode = async () => {
@@ -202,12 +315,7 @@ export default function SupplierGraphBuilder() {
     if (!selectedNode) return;
     try {
       await graphApi.deleteNode(selectedNode.id);
-      setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
-      setEdges((eds) =>
-        eds.filter(
-          (e) => e.source !== selectedNode.id && e.target !== selectedNode.id
-        )
-      );
+      await reloadGraph();
       setSelectedNode(null);
     } catch {
       // silent
@@ -215,8 +323,8 @@ export default function SupplierGraphBuilder() {
   };
 
   // Draggable sidebar item
-  const onDragStart = (event) => {
-    event.dataTransfer.setData("application/reactflow", SUPPLIER_NODE_TYPE);
+  const onDragStart = (event, nodeType) => {
+    event.dataTransfer.setData("application/reactflow", nodeType);
     event.dataTransfer.effectAllowed = "move";
   };
 
@@ -270,30 +378,38 @@ export default function SupplierGraphBuilder() {
         {/* Node palette sidebar */}
         <div className="w-56 shrink-0 overflow-y-auto border-r border-slate-200 bg-white p-3">
           <p className="mb-3 px-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-            Node
+            Nodes
           </p>
           <div className="space-y-1">
-            <div
-              draggable
-              onDragStart={onDragStart}
-              className="flex cursor-grab items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-[#b1b2ff]/10 active:cursor-grabbing"
-            >
-              <div
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${SUPPLIER_NODE_META.iconClass}`}
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  {SUPPLIER_NODE_META.icon}
-                </span>
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-xs font-medium text-slate-700">
-                  {SUPPLIER_NODE_META.title}
-                </p>
-                <p className="truncate text-[10px] text-slate-400">
-                  {SUPPLIER_NODE_META.subtitle}
-                </p>
-              </div>
-            </div>
+            {SUPPLIER_PALETTE.map((nodeType) => {
+              const meta = NODE_META[nodeType];
+              if (!meta) return null;
+
+              return (
+                <div
+                  key={nodeType}
+                  draggable
+                  onDragStart={(event) => onDragStart(event, nodeType)}
+                  className="flex cursor-grab items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-[#b1b2ff]/10 active:cursor-grabbing"
+                >
+                  <div
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${meta.iconClass}`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      {meta.icon}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-medium text-slate-700">
+                      {meta.title}
+                    </p>
+                    <p className="truncate text-[10px] text-slate-400">
+                      {meta.subtitle}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -360,7 +476,7 @@ export default function SupplierGraphBuilder() {
                   Type
                 </label>
                 <div className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                  My Node
+                  {NODE_META[selectedNode.data?.type]?.title || selectedNode.data?.type || "Unknown"}
                 </div>
               </div>
 
@@ -376,6 +492,24 @@ export default function SupplierGraphBuilder() {
                   placeholder="e.g. United States"
                 />
               </div>
+
+              {selectedNode.data?.linkedWorkspace && (
+                <button
+                  type="button"
+                  onClick={handleToggleSupplierNetwork}
+                  disabled={networkBusy}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#b1b2ff]/30 bg-[#b1b2ff]/10 px-3 py-2 text-xs font-semibold text-[#4f52c9] transition-colors hover:bg-[#b1b2ff]/20 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="material-symbols-outlined text-[16px]">
+                    {selectedNetworkExpanded ? "unfold_less" : "account_tree"}
+                  </span>
+                  {networkBusy
+                    ? "Processing..."
+                    : selectedNetworkExpanded
+                      ? "Collapse Network"
+                      : "View Network"}
+                </button>
+              )}
 
               <div className="flex gap-2">
                 <button
@@ -400,6 +534,16 @@ export default function SupplierGraphBuilder() {
           </div>
         )}
       </div>
+
+      {catalogModal && (
+        <NodeCatalogModal
+          nodeType={catalogModal.nodeType}
+          position={catalogModal.position}
+          existingNodes={nodes}
+          onSelect={handleCatalogSelect}
+          onClose={() => setCatalogModal(null)}
+        />
+      )}
     </div>
   );
 }
