@@ -149,6 +149,20 @@ const nodeSchema = new mongoose.Schema(
         default: 0,
       },
     },
+    // ── Import tracking ─────────────────────────────────────
+    imported: {
+      type: Boolean,
+      default: false,
+    },
+    sourceWorkspace: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Workspace",
+      default: null,
+    },
+    originalNodeId: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

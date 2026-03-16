@@ -37,6 +37,9 @@ const toReactFlowNode = (nodeDoc) => ({
     risk_probability: nodeDoc.risk_probability || "Low",
     external_risk_score: nodeDoc.external_risk_score || 0,
     last_risk_update: nodeDoc.last_risk_update,
+    imported: nodeDoc.imported || false,
+    sourceWorkspace: nodeDoc.sourceWorkspace || null,
+    originalNodeId: nodeDoc.originalNodeId || null,
   },
   type: "supplyNode",
 });
